@@ -1,4 +1,4 @@
-package gestionInventario.utilidades;
+package gestionLibreria.utilidades;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
