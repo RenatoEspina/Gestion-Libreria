@@ -37,4 +37,87 @@ public class Libro {
         this.autores = FXCollections.observableArrayList();
         this.autores.addAll(autores);
 	}
+	
+	// --- Fecha de Publicación (Atributo estándar) ---
+    public LocalDate getFechaDePublicacion() {
+        return fechaDePublicacion;
+    }
+
+    public void setFechaDePublicacion(LocalDate fechaDePublicacion) {
+        this.fechaDePublicacion = fechaDePublicacion;
+    }
+
+    // --- Título ---
+    public String getTitulo() {
+        return titulo.get();
+    }
+
+    public void setTitulo(String titulo) {
+        this.titulo.set(titulo);
+    }
+
+    public SimpleStringProperty tituloProperty() {
+        return titulo;
+    }
+
+    // --- Formato ---
+    public String getFormato() {
+        return formato.get();
+    }
+
+    public void setFormato(String formato) {
+        this.formato.set(formato);
+    }
+
+    public SimpleStringProperty formatoProperty() {
+        return formato;
+    }
+
+    // --- Categoría ---
+    public String getCategoria() {
+        return categoria.get();
+    }
+
+    public void setCategoria(String categoria) {
+        this.categoria.set(categoria);
+    }
+
+    public SimpleStringProperty categoriaProperty() {
+        return categoria;
+    }
+
+    // --- Páginas ---
+    public int getPaginas() {
+        return paginas.get();
+    }
+
+    public void setPaginas(int paginas) {
+        this.paginas.set(paginas);
+    }
+
+    public SimpleIntegerProperty paginasProperty() {
+        return paginas;
+    }
+
+    // --- ID Interno ---
+    public int getIdInterno() {
+        return idInterno.get();
+    }
+
+    public void setIdInterno(int idInterno) {
+        this.idInterno.set(idInterno);
+    }
+
+    public SimpleIntegerProperty idInternoProperty() {
+        return idInterno;
+    }
+
+    // --- Autores (ObservableList) ---
+    public ObservableList<String> getAutores() {
+        return autores;
+    }
+
+    public void setAutores(List<String> autores) {
+        this.autores.setAll(autores);
+    }
 }
