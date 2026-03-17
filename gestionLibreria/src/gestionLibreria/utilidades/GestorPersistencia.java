@@ -75,7 +75,7 @@ public class GestorPersistencia {
                         sb.append(l.getIdInterno()).append(",");
                         sb.append(escapeCSV(l.getTitulo())).append(",");
                         sb.append(escapeCSV(String.join(";", l.getAutores()))).append(",");
-                        sb.append(escapeCSV(l.getEdicion())).append(","); // Cambio: getEdicion()
+                        sb.append(escapeCSV(l.getEdicion())).append(",");
                         sb.append(escapeCSV(l.getCategoria())).append(",");
                         sb.append(l.getPaginas()).append(",");
                         sb.append(l.getFechaDePublicacion()).append(",");

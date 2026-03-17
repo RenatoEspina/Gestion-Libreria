@@ -19,6 +19,11 @@ public class Inventario {
 		this.socios.putAll(socios);
 	}
 	
+	public Inventario() {
+		this.secciones = FXCollections.observableHashMap();
+		this.socios= FXCollections.observableHashMap();
+	}
+	
 	// --- Getters para Secciones ---
 
     /**

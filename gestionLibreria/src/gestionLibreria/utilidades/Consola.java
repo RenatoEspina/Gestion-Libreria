@@ -17,7 +17,7 @@ import java.time.format.DateTimeParseException;
  * @see Scanner
  * @see LocalDate
  */
-public class consola {
+public class Consola {
     private static Scanner sc = new Scanner(System.in);
     
     /**
