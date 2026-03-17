@@ -13,10 +13,10 @@ public class LibroPrestable extends Libro {
 	private LocalDate fechaPrestamo;
 	private LocalDate fechaDevolucion;
 	public LibroPrestable(LocalDate fechaDePublicacion, String titulo, String formato, String categoria,
-						  int paginas, int idInterno, ArrayList<String> autores, String disponibilidad,
+						  int paginas, int idInterno, int precio, ArrayList<String> autores, String disponibilidad,
 						  int retraso, int multa, LocalDate fechaPrestamo, LocalDate fechaDevolucion) {
 		
-		super(fechaDePublicacion, titulo, formato, categoria, paginas, idInterno, autores);
+		super(fechaDePublicacion, titulo, formato, categoria, paginas, idInterno, precio, autores);
 		
 		this.disponibilidad = new SimpleStringProperty(disponibilidad);
 		

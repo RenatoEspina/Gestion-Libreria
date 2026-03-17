@@ -3,6 +3,7 @@ package gestionLibreria.inventario;
 import java.util.HashMap;
 
 import gestionLibreria.inventario.*;
+import gestionLibreria.extensiones.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
@@ -59,17 +60,24 @@ public class Inventario {
         return socios.get(rut);
     }
 
-    // --- Métodos de utilidad para actualizar (equivalentes a setters) ---
+    // --- Setters ---
 
-    public void agregarSeccion(String nombre, Seccion seccion) {
+    public void SetSeccion(String nombre, Seccion seccion) {
         this.secciones.put(nombre, seccion);
     }
 
-    public void registrarSocio(String rut, Socio socio) {
+    public void SetSocio(String rut, Socio socio) {
         this.socios.put(rut, socio);
     }
 
+ // --- Funciones ---
+    
     public void eliminarSocio(String rut) {
         this.socios.remove(rut);
     }
+    
+    public void venderLibro(Libro libro) {
+    	
+    }
+    
 }

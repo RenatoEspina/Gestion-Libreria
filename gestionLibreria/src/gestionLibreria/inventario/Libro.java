@@ -13,7 +13,7 @@ public class Libro {
 	
 	private final SimpleStringProperty titulo;
 	
-	private final SimpleStringProperty formato;
+	private final SimpleStringProperty edicion;
 	
 	private final SimpleStringProperty categoria;
 	
@@ -21,18 +21,21 @@ public class Libro {
 	
 	private final SimpleIntegerProperty idInterno;
 	
+	private final SimpleIntegerProperty precio;
+	
 	private final ObservableList <String> autores;
 	
-	public Libro (LocalDate fechaDePublicacion, String titulo, String formato, String categoria, int paginas, int idInterno, List<String> autores) {
+	public Libro (LocalDate fechaDePublicacion, String titulo, String edicion, String categoria, int paginas, int idInterno, int precio, List<String> autores) {
 		
         this.fechaDePublicacion = fechaDePublicacion;
         
         this.titulo = new SimpleStringProperty(titulo);
-        this.formato = new SimpleStringProperty(formato);
+        this.edicion = new SimpleStringProperty(edicion);
         this.categoria = new SimpleStringProperty(categoria);
         
         this.paginas = new SimpleIntegerProperty(paginas);
         this.idInterno = new SimpleIntegerProperty(idInterno);
+        this.precio = new SimpleIntegerProperty(precio);
         
         this.autores = FXCollections.observableArrayList();
         this.autores.addAll(autores);
@@ -60,17 +63,17 @@ public class Libro {
         return titulo;
     }
 
-    // --- Formato ---
-    public String getFormato() {
-        return formato.get();
+    // --- edicion ---
+    public String getEdicion() {
+        return edicion.get();
     }
 
-    public void setFormato(String formato) {
-        this.formato.set(formato);
+    public void setEdicion(String formato) {
+        this.edicion.set(formato);
     }
 
-    public SimpleStringProperty formatoProperty() {
-        return formato;
+    public SimpleStringProperty edicionProperty() {
+        return edicion;
     }
 
     // --- Categoría ---
@@ -112,6 +115,20 @@ public class Libro {
         return idInterno;
     }
 
+    // --- Precio ---
+    public int getPrecio() {
+        return precio.get();
+    }
+
+    public void setprecio(int precio) {
+        this.precio.set(precio);
+    }
+
+    public SimpleIntegerProperty precioProperty() {
+        return precio;
+    }
+    
+    
     // --- Autores (ObservableList) ---
     public ObservableList<String> getAutores() {
         return autores;

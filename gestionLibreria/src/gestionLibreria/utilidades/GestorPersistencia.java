@@ -10,10 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
+import javafx.collections.ObservableList;
 
 /**
- * Clase responsable de la persistencia de datos del sistema de librería.
- * Maneja archivos CSV para Secciones, Libros y Socios.
+ * Gestor de Persistencia actualizado para manejar 'Edicion' en libros base
+ * y 'Formato' en libros digitales.
  */
 public class GestorPersistencia {
     private final String rutaSecciones;
@@ -31,7 +32,9 @@ public class GestorPersistencia {
         }
 
         crearArchivoSiNoExiste(rutaSecciones, "nombre_seccion\n");
-        crearArchivoSiNoExiste(rutaLibros, "seccion,id,titulo,autores,formato,categoria,paginas,fecha_pub,tipo,precio,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
+        // Cabecera actualizada: 'edicion' sustituye al antiguo formato base, 
+        // y mantenemos 'formato_digital' para LibroDigital.
+        crearArchivoSiNoExiste(rutaLibros, "seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,tipo,precio,memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
         crearArchivoSiNoExiste(rutaSocios, "nombre,rut,contacto,ids_prestados\n");
     }
 
@@ -63,33 +66,38 @@ public class GestorPersistencia {
 
     private void guardarLibros(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaLibros)) {
-            writer.write("seccion,id,titulo,autores,formato,categoria,paginas,fecha_pub,tipo,precio,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
+            writer.write("seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,tipo,precio,memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
             for (Seccion s : inventario.getSecciones().values()) {
-                for (Libro l : s.getLibros()) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(escapeCSV(s.getNombre())).append(",");
-                    sb.append(l.getIdInterno()).append(",");
-                    sb.append(escapeCSV(l.getTitulo())).append(",");
-                    sb.append(escapeCSV(String.join(";", l.getAutores()))).append(",");
-                    sb.append(escapeCSV(l.getFormato())).append(",");
-                    sb.append(escapeCSV(l.getCategoria())).append(",");
-                    sb.append(l.getPaginas()).append(",");
-                    sb.append(l.getFechaDePublicacion()).append(",");
+                for (ObservableList<Libro> listaDeLibros : s.getLibros().values()) {
+                    for (Libro l : listaDeLibros) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(escapeCSV(s.getNombre())).append(",");
+                        sb.append(l.getIdInterno()).append(",");
+                        sb.append(escapeCSV(l.getTitulo())).append(",");
+                        sb.append(escapeCSV(String.join(";", l.getAutores()))).append(",");
+                        sb.append(escapeCSV(l.getEdicion())).append(","); // Cambio: getEdicion()
+                        sb.append(escapeCSV(l.getCategoria())).append(",");
+                        sb.append(l.getPaginas()).append(",");
+                        sb.append(l.getFechaDePublicacion()).append(",");
+                        sb.append(l.getPrecio()).append(",");
 
-                    if (l instanceof LibroVendible) {
-                        sb.append("VENDIBLE,").append(((LibroVendible) l).getPrecio()).append(",,,,,");
-                    } else if (l instanceof LibroPrestable) {
-                        LibroPrestable lp = (LibroPrestable) l;
-                        sb.append("PRESTABLE,,")
-                          .append(escapeCSV(lp.getDisponibilidad())).append(",")
-                          .append(lp.getRetraso()).append(",")
-                          .append(lp.getMulta()).append(",")
-                          .append(lp.getFechaPrestamo() != null ? lp.getFechaPrestamo() : "").append(",")
-                          .append(lp.getFechaDevolucion() != null ? lp.getFechaDevolucion() : "");
-                    } else {
-                        sb.append("BASE,,,,,,,");
+                        if (l instanceof LibroDigital) {
+                            LibroDigital ld = (LibroDigital) l;
+                            sb.append("DIGITAL,").append(ld.getMemoria()).append(",")
+                              .append(escapeCSV(ld.getFormato())).append(",,,,,");
+                        } else if (l instanceof LibroPrestable) {
+                            LibroPrestable lp = (LibroPrestable) l;
+                            sb.append("PRESTABLE,,,") // memoria y formato_digital vacíos
+                              .append(escapeCSV(lp.getDisponibilidad())).append(",")
+                              .append(lp.getRetraso()).append(",")
+                              .append(lp.getMulta()).append(",")
+                              .append(lp.getFechaPrestamo() != null ? lp.getFechaPrestamo() : "").append(",")
+                              .append(lp.getFechaDevolucion() != null ? lp.getFechaDevolucion() : "");
+                        } else {
+                            sb.append("BASE,,,,,,,,");
+                        }
+                        writer.write(sb.toString() + "\n");
                     }
-                    writer.write(sb.toString() + "\n");
                 }
             }
         }
@@ -115,13 +123,10 @@ public class GestorPersistencia {
     // --- MÉTODOS DE CARGA ---
 
     public Inventario cargarTodo() throws IOException {
-        // Inicializamos con mapas vacíos para el constructor de tu clase Inventario
         Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
-        
         cargarSecciones(inventario);
         HashMap<Integer, Libro> mapaLibrosGlobal = cargarLibros(inventario);
         cargarSocios(inventario, mapaLibrosGlobal);
-        
         return inventario;
     }
 
@@ -130,7 +135,7 @@ public class GestorPersistencia {
         List<List<String>> datos = lector.readAll();
         for (int i = 1; i < datos.size(); i++) {
             String nombre = unescapeCSV(datos.get(i).get(0));
-            inv.agregarSeccion(nombre, new Seccion(nombre, new ArrayList<>()));
+            inv.SetSeccion(nombre, new Seccion(nombre));
         }
     }
 
@@ -146,26 +151,32 @@ public class GestorPersistencia {
                 int id = Integer.parseInt(f.get(1));
                 String titulo = unescapeCSV(f.get(2));
                 ArrayList<String> autores = new ArrayList<>(Arrays.asList(unescapeCSV(f.get(3)).split(";")));
-                String formato = unescapeCSV(f.get(4));
+                String edicion = unescapeCSV(f.get(4));
                 String cat = unescapeCSV(f.get(5));
                 int pag = Integer.parseInt(f.get(6));
                 LocalDate fecha = LocalDate.parse(f.get(7));
-                String tipo = f.get(8);
+                int precio = Integer.parseInt(f.get(8));
+                String tipo = f.get(9);
 
                 Libro libro;
-                if ("VENDIBLE".equals(tipo)) {
-                    libro = new LibroVendible(fecha, titulo, formato, cat, pag, id, autores, Integer.parseInt(f.get(9)));
+                if ("DIGITAL".equals(tipo)) {
+                    int memoria = Integer.parseInt(f.get(10));
+                    String formatoDigital = unescapeCSV(f.get(11));
+                    // Constructor: LocalDate, titulo, edicion, categoria, paginas, id, precio, autores, memoria, formato
+                    libro = new LibroDigital(fecha, titulo, edicion, cat, pag, id, precio, autores, memoria, formatoDigital);
                 } else if ("PRESTABLE".equals(tipo)) {
-                    libro = new LibroPrestable(fecha, titulo, formato, cat, pag, id, autores, 
-                        unescapeCSV(f.get(10)), Integer.parseInt(f.get(11)), Integer.parseInt(f.get(12)),
-                        f.get(13).isEmpty() ? null : LocalDate.parse(f.get(13)),
-                        f.get(14).isEmpty() ? null : LocalDate.parse(f.get(14)));
+                    libro = new LibroPrestable(fecha, titulo, edicion, cat, pag, id, precio, autores, 
+                        unescapeCSV(f.get(12)), Integer.parseInt(f.get(13)), Integer.parseInt(f.get(14)),
+                        f.get(15).isEmpty() ? null : LocalDate.parse(f.get(15)),
+                        f.get(16).isEmpty() ? null : LocalDate.parse(f.get(16)));
                 } else {
-                    libro = new Libro(fecha, titulo, formato, cat, pag, id, autores);
+                    libro = new Libro(fecha, titulo, edicion, cat, pag, id, precio, autores);
                 }
 
-                inv.getSeccion(secNombre).agregarLibro(libro);
-                librosCargados.put(id, libro);
+                if (inv.getSeccion(secNombre) != null) {
+                    inv.getSeccion(secNombre).agregarLibro(libro);
+                    librosCargados.put(id, libro);
+                }
             } catch (Exception e) {
                 System.err.println("Error en línea " + i + ": " + e.getMessage());
             }
@@ -186,12 +197,12 @@ public class GestorPersistencia {
 
             List<Libro> prestados = new ArrayList<>();
             if (!idsStr.isEmpty()) {
-                for (String id : idsStr.split(";")) {
-                    Libro l = librosGlobal.get(Integer.parseInt(id));
+                for (String idStr : idsStr.split(";")) {
+                    Libro l = librosGlobal.get(Integer.parseInt(idStr));
                     if (l != null) prestados.add(l);
                 }
             }
-            inv.registrarSocio(rut, new Socio(nombre, rut, contacto, prestados));
+            inv.SetSocio(rut, new Socio(nombre, rut, contacto, prestados));
         }
     }
 

@@ -1,21 +1,20 @@
 package gestionLibreria.inventario;
 
-import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 
 public class Seccion {
-	private final SimpleStringProperty nombre;
-	private final ObservableList<Libro> libros;
-	
-	public Seccion (String nombre, List<Libro> libros) {	
-		this.nombre = new SimpleStringProperty(nombre);
-		this.libros = FXCollections.observableArrayList();
-		this.libros.addAll(libros);
-	}
-	
-	// --- Getters y Setters para el Nombre ---
+    private final SimpleStringProperty nombre;
+    private final ObservableMap<String, ObservableList<Libro>> libros;
+
+    public Seccion(String nombre) {
+        this.nombre = new SimpleStringProperty(nombre);
+        this.libros = FXCollections.observableHashMap();
+    }
+
+    // --- Getters y Setters para el Nombre ---
 
     public String getNombre() {
         return nombre.get();
@@ -29,39 +28,58 @@ public class Seccion {
         return nombre;
     }
 
-    // --- Gestión de la Lista de Libros ---
+    // --- Gestión del Mapa de Listas de Libros ---
 
     /**
-     * Retorna la lista observable de libros. 
-     * Útil para vincularla directamente a componentes UI de JavaFX.
+     * Retorna el mapa completo.
      */
-    public ObservableList<Libro> getLibros() {
+    public ObservableMap<String, ObservableList<Libro>> getLibros() {
         return libros;
     }
 
     /**
-     * Agrega un nuevo libro a la sección.
-     * @param libro El libro que se desea incluir.
+     * Agrega un libro a la lista correspondiente a su título.
+     * Si la lista no existe para esa llave, se crea una nueva.
      */
     public void agregarLibro(Libro libro) {
         if (libro != null) {
-            this.libros.add(libro);
+            // computeIfAbsent asegura que siempre haya una lista para la llave
+            this.libros.computeIfAbsent(libro.getTitulo(), k -> FXCollections.observableArrayList())
+                       .add(libro);
         }
     }
 
     /**
-     * Elimina un libro específico de la sección.
-     * @param libro El libro que se desea retirar.
-     * @return true si el libro existía y fue eliminado.
+     * Elimina un libro específico de la lista asociada a su título.
+     * Si la lista queda vacía tras eliminarlo, se remueve la llave del mapa.
      */
     public boolean eliminarLibro(Libro libro) {
-        return this.libros.remove(libro);
+        if (libro == null) return false;
+        
+        ObservableList<Libro> lista = libros.get(libro.getTitulo());
+        if (lista != null) {
+            boolean removido = lista.remove(libro);
+            // Opcional: Limpiar el mapa si la lista se vacía
+            if (lista.isEmpty()) {
+                libros.remove(libro.getTitulo());
+            }
+            return removido;
+        }
+        return false;
     }
-    
+
     /**
-     * Limpia todos los libros de esta sección.
+     * Limpia todas las listas y llaves de esta sección.
      */
     public void vaciarSeccion() {
         this.libros.clear();
+    }
+
+    /**
+     * Busca todos los libros que coincidan con un nombre (llave).
+     * @return Una lista de libros o null si no hay coincidencias.
+     */
+    public ObservableList<Libro> encontrarLibrosPorTitulo(String titulo) {
+        return this.libros.get(titulo);
     }
 }
