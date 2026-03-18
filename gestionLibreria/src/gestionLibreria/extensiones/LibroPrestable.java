@@ -86,4 +86,16 @@ public class LibroPrestable extends Libro {
     public void setFechaDevolucion(LocalDate fechaDevolucion) {
         this.fechaDevolucion = fechaDevolucion;
     }
+    
+    @Override
+    public void imprimirInformacion() {
+    	super.imprimirInformacion();
+    	
+    	System.out.println("Disponibilidad: " + disponibilidad.get());
+        System.out.println("Retraso: " + retraso.get());
+        System.out.println("Multa: " + multa.get());
+        System.out.println("Fecha de Entrega: " + getFechaDevolucion());
+        System.out.println("Fecha de Prestamo: " + getFechaPrestamo());
+    }
+    
 }

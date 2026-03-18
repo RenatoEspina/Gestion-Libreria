@@ -4,6 +4,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import java.util.stream.Collectors;
 
 public class Seccion {
     private final SimpleStringProperty nombre;
@@ -29,7 +30,12 @@ public class Seccion {
     }
 
     // --- Gestión del Mapa de Listas de Libros ---
-
+    
+    public ObservableList<String> GetLlaves(){
+    	ObservableList<String> llaves= FXCollections.observableArrayList(libros.keySet());
+    	return llaves;
+    }
+    
     /**
      * Retorna el mapa completo.
      */

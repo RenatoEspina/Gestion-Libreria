@@ -137,4 +137,26 @@ public class Libro {
     public void setAutores(List<String> autores) {
         this.autores.setAll(autores);
     }
+    
+    public void imprimirInformacion() {
+        System.out.println("- Título: " + titulo.get());
+        System.out.println("- Fecha de publicación: " + getFechaDePublicacion());
+        if (getAutores() != null && !getAutores().isEmpty()) {
+            System.out.print("- Autores: ");
+            for (int i = 0; i < getAutores().size(); i++) {
+                System.out.print(getAutores().get(i));
+                if (i < getAutores().size() - 1) {
+                    System.out.print(", ");
+                }
+            }
+            System.out.println();
+        } else {
+            System.out.println("- Autores: No especificados");
+        }
+
+        System.out.println("- Categoría: " + categoria.get());
+        System.out.println("- Páginas: " + paginas.get());
+        System.out.println("- Precio: " + precio.get());
+        System.out.println("- ID: " + idInterno.get());
+    }
 }

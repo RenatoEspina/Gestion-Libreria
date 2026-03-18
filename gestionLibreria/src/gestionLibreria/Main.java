@@ -20,14 +20,20 @@ public class Main extends Application {
     public static void main(String[] args) {
         // Inicialización de datos
         try {
+        	System.out.println("Cargando datos...");
             gestor = new GestorPersistencia("data/");
             inventario = gestor.cargarTodo();
         } catch (IOException e) {
+        	Consola.limpiarPantalla();
             System.out.println("Error: No se pudo cargar el inventario. Iniciando vacío.");
             inventario = new Inventario();
         }
 
-        String decision = Consola.leerString("¿Desea usar la 'terminal' o la 'ventana'?");
+        System.out.println("Datos cargados!!!");
+        Consola.enterParaContinuar();
+        Consola.limpiarPantalla();
+        String decision = Consola.leerString("¿Desea usar la 'terminal' o la 'ventana'?: ");
+        Consola.limpiarPantalla();
 
         if (decision.equalsIgnoreCase("ventana")) {
             launch(args); 

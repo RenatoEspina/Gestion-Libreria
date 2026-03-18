@@ -48,6 +48,7 @@ public class Inventario {
         return FXCollections.observableArrayList(secciones.values());
     }
     
+    
     // --- Getters para Socios ---
 
     /**

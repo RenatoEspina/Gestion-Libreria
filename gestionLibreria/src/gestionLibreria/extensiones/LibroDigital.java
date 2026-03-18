@@ -14,7 +14,7 @@ public class LibroDigital extends Libro{
 	
 	public LibroDigital(LocalDate fechaDePublicacion, String titulo, String edicion, String categoria,
 								int paginas, int idInterno, int precio, ArrayList<String> autores, int memoria, String formato) {
-		super(fechaDePublicacion, titulo, formato, categoria, paginas, idInterno, precio, autores);
+		super(fechaDePublicacion, titulo, edicion, categoria, paginas, idInterno, precio, autores);
 		this.memoria = new SimpleIntegerProperty(memoria);
 		this.formato = new SimpleStringProperty(formato);
 	}
@@ -45,6 +45,14 @@ public class LibroDigital extends Libro{
 
     public SimpleStringProperty FormatoProperty() {
         return formato;
+    }
+    
+    @Override
+    public void imprimirInformacion() {
+    	super.imprimirInformacion();
+    	
+    	System.out.println("Formato: " + formato.get());
+        System.out.println("Memoria (MB): " + memoria.get());
     }
     
 }
