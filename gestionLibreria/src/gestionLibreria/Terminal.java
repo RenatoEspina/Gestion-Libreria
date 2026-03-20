@@ -34,7 +34,7 @@ public class Terminal {
 					else {
 						System.out.println("Secciones:");
 						
-						for( int i=0 ; i<=secciones.size(); i++) {
+						for( int i=0 ; i<secciones.size(); i++) {
 							System.out.println("-" + secciones.get(i).getNombre());
 						}
 						
