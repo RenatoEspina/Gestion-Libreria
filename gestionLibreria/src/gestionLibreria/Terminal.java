@@ -11,7 +11,7 @@ public class Terminal {
 		Consola.enterParaContinuar();
 		Consola.limpiarPantalla();
 		int decision=0;
-		while(decision!=8) {
+		while(decision!=9) {
 			System.out.println("Menu de Opciones");
 			System.out.println("1. Inventario");
 			System.out.println("2. Socios");
@@ -20,59 +20,92 @@ public class Terminal {
 			System.out.println("5. Prestar Libro a Socio");
 			System.out.println("6. Buscar Libro por Nombre");
 			System.out.println("7. Registrar Libro");
-			System.out.println("8. Salir");
+			System.out.println("8. Descontuinar Libro");
+			System.out.println("9. Salir");
 			decision=Consola.leerEntero("Opcion: ");
 			Consola.limpiarPantalla();
 			switch(decision) {
-				case 1:
-					ObservableList <Seccion> secciones;
-					secciones = FXCollections.observableArrayList(inventario.getSeccionesAsObservableList());
-					if (secciones==null || secciones.isEmpty()) {
-						System.out.println("NO EXISTEN SECCIONES!!");
-					}
+			case 1:
+			    ObservableList<Seccion> secciones = FXCollections.observableArrayList(inventario.getSeccionesAsObservableList());
+			    if (secciones == null || secciones.isEmpty()) {
+			        System.out.println("ERROR CRÍTICO: No existen secciones en el inventario.");
+			        break; 
+			    }
+
+			    Seccion seccionSeleccionada = null;
+			    
+			    while (seccionSeleccionada == null) {
+			        try {
+			            System.out.println("\n--- Secciones Disponibles ---");
+			            for (Seccion s : secciones) {
+			                System.out.println("- " + s.getNombre());
+			            }
+
+			            String nombreSeccion = Consola.leerString("Ingrese el nombre de la sección: ");
+			            seccionSeleccionada = inventario.getSeccion(nombreSeccion);
+
+			            if (seccionSeleccionada == null) {
+			                throw new Exception("La sección '" + nombreSeccion + "' no existe. Intente de nuevo.");
+			            }
+			            
+			            Consola.limpiarPantalla();
+			        } catch (Exception e) {
+			            System.out.println("Error: " + e.getMessage());
+			        }
+			    }
+
+			    while (true) {
+			        try {
+			            ObservableList<String> nombreLibros = seccionSeleccionada.GetLlaves();
+			            
+			            if (nombreLibros == null || nombreLibros.isEmpty()) {
+			                System.out.println("Esta sección está vacía.");
+			                break;
+			            }
+
+			            System.out.println("Libros disponibles en " + seccionSeleccionada.getNombre() + ":");
+			            for (String nombre : nombreLibros) {
+			                System.out.println("- " + nombre);
+			            }
+
+			            String libroBuscado = Consola.leerString("Ingrese el título del libro: ");
+			            ObservableList<Libro> librosEncontrados = seccionSeleccionada.encontrarLibrosPorTitulo(libroBuscado);
+
+			            if (librosEncontrados == null || librosEncontrados.isEmpty()) {
+			                throw new Exception("El libro '" + libroBuscado + "' no se encuentra. Intente de nuevo.");
+			            }
+
+			            Consola.limpiarPantalla();
+			            System.out.println("----------------------------------------");
+			            for (Libro libroUnico : librosEncontrados) {
+			                libroUnico.imprimirInformacion();
+			                System.out.println("----------------------------------------");
+			            }
+			            
+			            Consola.enterParaContinuar();
+			            break;
+
+			        } catch (Exception e) {
+			            System.out.println("Error: " + e.getMessage());
+			        }
+			    }
+			    break;
+			    
+				case 2:
+					ObservableList<Socio> socios = FXCollections.observableArrayList(inventario.getSociosAsObservableList());
+					if (socios == null || socios.isEmpty()) {
+				        System.out.println("ERROR CRÍTICO: No existen secciones en el inventario.");
+				        break; 
+				    }
 					
-					else {
-						System.out.println("Secciones:");
-						
-						for( int i=0 ; i<secciones.size(); i++) {
-							System.out.println("-" + secciones.get(i).getNombre());
-						}
-						
-						String seccionUsada=Consola.leerString("Seccion: ");
-						Seccion seccion=inventario.getSeccion(seccionUsada);
-						Consola.limpiarPantalla();
-						ObservableList<String> nombreLibros=seccion.GetLlaves();
-						
-						if (nombreLibros==null || nombreLibros.isEmpty()) {
-							System.out.println("");
-						}
-						
-						else {
-							for(int i=0; i<nombreLibros.size();i++) {
-								System.out.println("-" + nombreLibros.get(i));
-							}
-							String libroBuscado=Consola.leerString("Libro: ");
-							ObservableList<Libro> libro=seccion.encontrarLibrosPorTitulo(libroBuscado);
-							Consola.limpiarPantalla();
-							if(libro==null || libro.isEmpty()) {
-								System.out.println("Libro no encontrado!!");
-							}
-							
-							else {
-								System.out.println("----------------------------------------");
-								for(int i=0;i<libro.size();i++) {
-									Libro libroUnico=libro.get(i);
-									libroUnico.imprimirInformacion();
-									System.out.println("----------------------------------------");
-								}
-								Consola.enterParaContinuar();
-								continue;
-							}
-						}
-					}
-			
+					for (Socio s : socios) {
+		                System.out.println("- " + s.getNombre());
+		            }
+					String socioBuscado=Consola.leerString("Ingrese el nombre del socio: ");
 					
-				case 8:
+					
+					
+				case 9:
 				    try {
 				        System.out.println("Guardando datos antes de salir...");
 				        gestor.guardarTodo(inventario);

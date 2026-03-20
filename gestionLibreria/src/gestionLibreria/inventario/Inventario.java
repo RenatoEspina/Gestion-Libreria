@@ -48,6 +48,13 @@ public class Inventario {
         return FXCollections.observableArrayList(secciones.values());
     }
     
+    /**
+     * Retorna las secciones como lista.
+     */
+    public ObservableList<Socio> getSociosAsObservableList() {
+        return FXCollections.observableArrayList(socios.values());
+    }
+    
     
     // --- Getters para Socios ---
 
