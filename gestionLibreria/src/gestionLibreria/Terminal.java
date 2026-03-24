@@ -12,6 +12,7 @@ public class Terminal {
 		Consola.limpiarPantalla();
 		int decision=0;
 		while(decision!=9) {
+			Consola.limpiarPantalla();
 			System.out.println("Menu de Opciones");
 			System.out.println("1. Inventario");
 			System.out.println("2. Socios");
@@ -98,11 +99,38 @@ public class Terminal {
 				        break; 
 				    }
 					
-					for (Socio s : socios) {
-		                System.out.println("- " + s.getNombre());
-		            }
-					String socioBuscado=Consola.leerString("Ingrese el nombre del socio: ");
+					String socioBuscado=null;
+					while(socioBuscado==null) {
+						try {
+							for (Socio s : socios) {
+								System.out.print("- " + s.getNombre());
+								System.out.println(" - " + s.getRut());
+							}
+							
+							socioBuscado=Consola.leerString("Ingrese el rut del socio: ");
+						} catch (Exception e) {
+							System.out.println("Error: " + e.getMessage());
+						}
+					}
 					
+					Socio socio=inventario.getSocio(socioBuscado);
+					socio.mostrarInformacion();
+					Consola.enterParaContinuar();
+					
+				case 3:
+					String nombre=Consola.leerString("Ingrese el nombre del nuevo socio: ");
+					String rut= Consola.leerString("Ingrese el rut del nuevo socio: ");
+					String numero= Consola.leerString("Ingrese el numero de telefono: ");
+					Socio nuevoSocio= new Socio(nombre,rut,numero);
+					try {
+						inventario.setSocio(rut, nuevoSocio);
+					} catch(Exception e) {
+						System.out.println("Error: " + e.getMessage());
+					}
+					System.out.println("Socio agregado con existo!!!");
+					Consola.enterParaContinuar();
+					
+				case 4:
 					
 					
 				case 9:

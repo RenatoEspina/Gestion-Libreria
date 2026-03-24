@@ -75,11 +75,11 @@ public class Inventario {
 
     // --- Setters ---
 
-    public void SetSeccion(String nombre, Seccion seccion) {
+    public void setSeccion(String nombre, Seccion seccion) {
         this.secciones.put(nombre, seccion);
     }
 
-    public void SetSocio(String rut, Socio socio) {
+    public void setSocio(String rut, Socio socio) {
         this.socios.put(rut, socio);
     }
 
@@ -89,8 +89,6 @@ public class Inventario {
         this.socios.remove(rut);
     }
     
-    public void venderLibro(Libro libro) {
-    	
-    }
+    
     
 }

@@ -135,7 +135,7 @@ public class GestorPersistencia {
         List<List<String>> datos = lector.readAll();
         for (int i = 1; i < datos.size(); i++) {
             String nombre = unescapeCSV(datos.get(i).get(0));
-            inv.SetSeccion(nombre, new Seccion(nombre));
+            inv.setSeccion(nombre, new Seccion(nombre));
         }
     }
 
@@ -202,7 +202,7 @@ public class GestorPersistencia {
                     if (l != null) prestados.add(l);
                 }
             }
-            inv.SetSocio(rut, new Socio(nombre, rut, contacto, prestados));
+            inv.setSocio(rut, new Socio(nombre, rut, contacto, prestados));
         }
     }
 

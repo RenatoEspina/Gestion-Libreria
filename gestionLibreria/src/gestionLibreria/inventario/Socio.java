@@ -22,6 +22,13 @@ public class Socio {
 		this.librosPrestados.addAll(librosPrestados);
 	}
 	
+	public Socio(String nombre, String rut, String numero) {
+		this.nombre = new SimpleStringProperty(nombre);
+		this.rut = new SimpleStringProperty(rut);
+		this.numeroContacto= new SimpleStringProperty(numero);
+		this.librosPrestados = FXCollections.observableArrayList();
+	}
+	
 	// --- Getters y Setters para Nombre ---
     public String getNombre() {
         return nombre.get();
@@ -87,5 +94,15 @@ public class Socio {
      */
     public boolean quitarLibroPrestado(Libro libro) {
         return this.librosPrestados.remove(libro);
+    }
+    
+    public void mostrarInformacion() {
+    	System.out.println("- Nombre: " + getNombre());
+    	System.out.println("- RUT: " + getRut());
+    	System.out.println("- Numero: " + getNumeroContacto());
+    	System.out.print("- Libros prestados: ");
+    	for(Libro l : librosPrestados) {
+    		System.out.print(", " + l.getTitulo());
+    	}
     }
 }
