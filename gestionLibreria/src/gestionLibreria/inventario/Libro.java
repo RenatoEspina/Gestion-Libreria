@@ -159,4 +159,5 @@ public class Libro {
         System.out.println("- Precio: " + precio.get());
         System.out.println("- ID: " + idInterno.get());
     }
+    
 }

@@ -89,6 +89,14 @@ public class Inventario {
         this.socios.remove(rut);
     }
     
-    
+    public Seccion encontrarSeccionDeLibro(String libro) {
+    	ObservableList<Seccion> secciones = FXCollections.observableArrayList(getSeccionesAsObservableList());
+        for (Seccion s : secciones) {
+            if (s.getLibros().containsKey(libro)) {
+                return s;
+            }
+        }
+        return null;
+    }
     
 }

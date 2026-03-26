@@ -6,6 +6,8 @@ import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import java.util.stream.Collectors;
 
+import gestionLibreria.utilidades.Consola;
+
 public class Seccion {
     private final SimpleStringProperty nombre;
     private final ObservableMap<String, ObservableList<Libro>> libros;
@@ -88,4 +90,32 @@ public class Seccion {
     public ObservableList<Libro> encontrarLibrosPorTitulo(String titulo) {
         return this.libros.get(titulo);
     }
+    
+    public void venderLibro(String nombreLibro) {
+        ObservableList<Libro> listaEjemplares = libros.get(nombreLibro);
+
+        if (listaEjemplares == null || listaEjemplares.isEmpty()) {
+            System.out.println("Libro No Existe!!");
+            return;
+        }
+
+        if (listaEjemplares.size() == 1) {
+            libros.remove(nombreLibro); 
+            System.out.println("Libro Vendido con Exito!!!");
+        } else {
+            int idLibro = Consola.leerEntero("Ingrese id del libro");
+            
+            boolean removido = listaEjemplares.removeIf(l -> l.getIdInterno() == idLibro);
+
+            if (removido) {
+                System.out.println("Libro Vendido con Exito!!!");
+                if (listaEjemplares.isEmpty()) {
+                    libros.remove(nombreLibro);
+                }
+            } else {
+                System.out.println("No se encontró un libro con ese ID.");
+            }
+        }
+    }
+    
 }

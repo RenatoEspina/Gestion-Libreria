@@ -118,10 +118,10 @@ public class Terminal {
 					Consola.enterParaContinuar();
 					
 				case 3:
-					String nombre=Consola.leerString("Ingrese el nombre del nuevo socio: ");
+					String nombreS=Consola.leerString("Ingrese el nombre del nuevo socio: ");
 					String rut= Consola.leerString("Ingrese el rut del nuevo socio: ");
 					String numero= Consola.leerString("Ingrese el numero de telefono: ");
-					Socio nuevoSocio= new Socio(nombre,rut,numero);
+					Socio nuevoSocio= new Socio(nombreS,rut,numero);
 					try {
 						inventario.setSocio(rut, nuevoSocio);
 					} catch(Exception e) {
@@ -131,7 +131,14 @@ public class Terminal {
 					Consola.enterParaContinuar();
 					
 				case 4:
-					
+					try {
+						String nombreL=Consola.leerString("Ingrese el nombre del libro: ");
+						Seccion seccionL= inventario.encontrarSeccionDeLibro(nombreL);
+						seccionL.venderLibro(nombreL);
+						Consola.enterParaContinuar();
+					} catch(Exception e) {
+						System.out.println("Error: " + e.getMessage());
+					}
 					
 				case 9:
 				    try {
