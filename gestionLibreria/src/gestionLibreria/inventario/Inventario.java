@@ -99,4 +99,20 @@ public class Inventario {
         return null;
     }
     
+    public ObservableList<Libro> encontrarLibro(String libro) {
+    	Seccion seccionL= encontrarSeccionDeLibro(libro);
+    	return seccionL.encontrarLibrosPorTitulo(libro);
+    	
+    }
+    
+    public boolean prestarLibro(Socio socio, Libro libroPrestado) {
+    	if(libroPrestado instanceof LibroPrestable) {
+    		socio.agregarLibroPrestado(libroPrestado);
+    		return true;
+    	}
+    	else {
+    		return false;
+    	}
+    }
+    
 }

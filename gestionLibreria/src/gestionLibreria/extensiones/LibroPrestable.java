@@ -19,7 +19,6 @@ public class LibroPrestable extends Libro {
 		super(fechaDePublicacion, titulo, formato, categoria, paginas, idInterno, precio, autores);
 		
 		this.disponibilidad = new SimpleStringProperty(disponibilidad);
-		
 		this.retraso = new SimpleIntegerProperty(retraso);
 		this.multa = new SimpleIntegerProperty(multa);
 		

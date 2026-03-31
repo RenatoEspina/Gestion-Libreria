@@ -2,6 +2,8 @@ package gestionLibreria;
 
 import gestionLibreria.inventario.*;
 import gestionLibreria.utilidades.*;
+import gestionLibreria.extensiones.*;
+import gestionLibreria.excepciones.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -140,6 +142,33 @@ public class Terminal {
 						System.out.println("Error: " + e.getMessage());
 					}
 					
+				case 5:
+					try {
+						String rutSocio=Consola.leerString("Ingrese el rut del socio: ");
+						String nombreL=Consola.leerString("Ingrese el nombre del libro: ");
+						Socio socioL= inventario.getSocio(rutSocio);
+						ObservableList<Libro> librosP=inventario.encontrarLibro(nombreL); 
+						boolean sePresto;
+						if(librosP.size()==1) {
+							sePresto= inventario.prestarLibro(socioL,librosP.get(0));
+						}
+						else {
+							int idL=Consola.leerEntero("Ingrese id del libro: ");
+							Libro libroP = librosP.stream()
+					                .filter(l -> l.getIdInterno() == idL)
+					                .findFirst()
+					                .orElse(null);
+							sePresto= inventario.prestarLibro(socioL,libroP);
+						}
+						if(sePresto) {
+							System.out.println("Se presto con exito!!");
+						}
+						else {
+							System.out.println("No se pudo prestar");
+						}
+					}catch(Exception e) {
+						System.out.println("Error: " + e.getMessage());
+					}
 				case 9:
 				    try {
 				        System.out.println("Guardando datos antes de salir...");
