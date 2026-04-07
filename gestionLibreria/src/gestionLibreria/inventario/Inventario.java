@@ -1,27 +1,46 @@
 package gestionLibreria.inventario;
 
 import java.util.HashMap;
+import java.util.List;
+import java.time.LocalDate;
 
 import gestionLibreria.inventario.*;
 import gestionLibreria.extensiones.*;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
+import javafx.beans.property.SimpleIntegerProperty;
 
 public class Inventario {
+	
 	private final ObservableMap<String, Seccion> secciones;
+	
 	private final ObservableMap<String, Socio> socios;
 	
-	public Inventario(HashMap<String, Seccion> secciones, HashMap<String, Socio> socios) {
+	private final ObservableList<Libro> librosVendidos;
+	
+	private final SimpleIntegerProperty TotalVentas;
+	
+	private final SimpleIntegerProperty numeroDeLibros;
+	
+	public Inventario(HashMap<String, Seccion> secciones, HashMap<String, Socio> socios, List<Libro> librosVendidos, int totalVentas, int numeroDeLibros) {
 		this.secciones = FXCollections.observableHashMap();
 		this.secciones.putAll(secciones);
 		this.socios= FXCollections.observableHashMap();
 		this.socios.putAll(socios);
+		this.librosVendidos=FXCollections.observableArrayList();
+		this.librosVendidos.addAll(librosVendidos);
+		this.TotalVentas= new SimpleIntegerProperty(totalVentas);
+		this.numeroDeLibros= new SimpleIntegerProperty(numeroDeLibros);
 	}
 	
 	public Inventario() {
 		this.secciones = FXCollections.observableHashMap();
 		this.socios= FXCollections.observableHashMap();
+		this.librosVendidos=FXCollections.observableArrayList();
+		this.TotalVentas=new SimpleIntegerProperty(0);
+		this.numeroDeLibros=new SimpleIntegerProperty(0);
 	}
 	
 	// --- Getters para Secciones ---

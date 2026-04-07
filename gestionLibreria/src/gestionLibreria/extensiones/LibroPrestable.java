@@ -7,18 +7,18 @@ import javafx.beans.property.SimpleStringProperty;
 import gestionLibreria.inventario.Libro;
 
 public class LibroPrestable extends Libro {
-	private final SimpleStringProperty disponibilidad;
+	private boolean disponibilidad;
 	private final SimpleIntegerProperty retraso;
 	private final SimpleIntegerProperty multa;
 	private LocalDate fechaPrestamo;
 	private LocalDate fechaDevolucion;
-	public LibroPrestable(LocalDate fechaDePublicacion, String titulo, String formato, String categoria,
-						  int paginas, int idInterno, int precio, ArrayList<String> autores, String disponibilidad,
+	public LibroPrestable(LocalDate fechaDePublicacion, String titulo, String edicion, String categoria,
+						  int paginas, int idInterno, int precio, ArrayList<String> autores, boolean disponibilidad,
 						  int retraso, int multa, LocalDate fechaPrestamo, LocalDate fechaDevolucion) {
 		
-		super(fechaDePublicacion, titulo, formato, categoria, paginas, idInterno, precio, autores);
+		super(fechaDePublicacion, titulo, edicion, categoria, paginas, idInterno, precio, autores);
 		
-		this.disponibilidad = new SimpleStringProperty(disponibilidad);
+		this.disponibilidad = disponibilidad;
 		this.retraso = new SimpleIntegerProperty(retraso);
 		this.multa = new SimpleIntegerProperty(multa);
 		
@@ -27,19 +27,27 @@ public class LibroPrestable extends Libro {
 		
 	}
 	
+	public LibroPrestable(LocalDate fechaDePublicacion, String titulo, String edicion, String categoria,
+			  int paginas, int idInterno, int precio, ArrayList<String> autores, int multa) {
+
+		super(fechaDePublicacion, titulo, edicion, categoria, paginas, idInterno, precio, autores);
+
+		this.disponibilidad = true;
+		this.retraso = new SimpleIntegerProperty(0);
+		this.multa = new SimpleIntegerProperty(multa);
+		this.fechaDevolucion=null;
+		this.fechaPrestamo=null;
+	}
+	
 	// --- Getters y Setters para Propiedades JavaFX ---
 
     // Disponibilidad
-    public String getDisponibilidad() {
-        return disponibilidad.get();
-    }
-
-    public void setDisponibilidad(String disponibilidad) {
-        this.disponibilidad.set(disponibilidad);
-    }
-
-    public SimpleStringProperty disponibilidadProperty() {
+    public boolean getDisponibilidad() {
         return disponibilidad;
+    }
+
+    public void setDisponibilidad(boolean disponibilidad) {
+        this.disponibilidad = disponibilidad;
     }
 
     // Retraso
@@ -90,7 +98,7 @@ public class LibroPrestable extends Libro {
     public void imprimirInformacion() {
     	super.imprimirInformacion();
     	
-    	System.out.println("Disponibilidad: " + disponibilidad.get());
+    	System.out.println("Disponibilidad: " + getDisponibilidad());
         System.out.println("Retraso: " + retraso.get());
         System.out.println("Multa: " + multa.get());
         System.out.println("Fecha de Entrega: " + getFechaDevolucion());

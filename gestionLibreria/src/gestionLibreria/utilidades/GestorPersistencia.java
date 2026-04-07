@@ -123,7 +123,7 @@ public class GestorPersistencia {
     // --- MÉTODOS DE CARGA ---
 
     public Inventario cargarTodo() throws IOException {
-        Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
+        Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>(),);
         cargarSecciones(inventario);
         HashMap<Integer, Libro> mapaLibrosGlobal = cargarLibros(inventario);
         cargarSocios(inventario, mapaLibrosGlobal);
