@@ -332,11 +332,11 @@ public class Ventana {
         if (libros == null || libros.isEmpty()) { error("Libro no encontrado."); return; }
 
         if (libros.size() == 1) {
-            seccion.eliminarLibro(libros.get(0));
+            seccion.venderLibro(nombre, libros.get(0).getIdInterno());
             info("Libro vendido con éxito!");
         } else {
-            elegirEjemplar("Vender Ejemplar", libros, "Vender").ifPresent(l -> {
-                seccion.eliminarLibro(l);
+            elegirEjemplar("Vender Ejemplar", libros, "Vender").ifPresent(l ->  {
+                seccion.venderLibro(nombre, l.getIdInterno());
                 info("Libro vendido con éxito!");
             });
         }

@@ -123,8 +123,7 @@ public class GestorPersistencia {
         // FIX: coma trailing eliminada; usa el constructor de 2 parámetros añadido en Inventario
         Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
         cargarSecciones(inventario);
-        HashMap<Integer, Libro> mapaLibrosGlobal = cargarLibros(inventario);
-        cargarSocios(inventario, mapaLibrosGlobal);
+        cargarSocios(inventario);
         return inventario;
     }
 
@@ -187,7 +186,7 @@ public class GestorPersistencia {
         return librosCargados;
     }
 
-    private void cargarSocios(Inventario inv, HashMap<Integer, Libro> librosGlobal) throws IOException {
+    private void cargarSocios(Inventario inv) throws IOException {
         LectorCSV lector = new LectorCSV(rutaSocios);
         List<List<String>> datos = lector.readAll();
 
@@ -201,7 +200,7 @@ public class GestorPersistencia {
             List<Libro> prestados = new ArrayList<>();
             if (!idsStr.isEmpty()) {
                 for (String idStr : idsStr.split(";")) {
-                    Libro l = librosGlobal.get(Integer.parseInt(idStr));
+                	Libro l = inv.encontrarLibro(Integer.parseInt(idStr));
                     if (l != null) prestados.add(l);
                 }
             }

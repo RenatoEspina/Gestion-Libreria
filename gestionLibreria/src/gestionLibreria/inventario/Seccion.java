@@ -118,4 +118,12 @@ public class Seccion {
         }
     }
     
+    public boolean venderLibro(String nombreLibro, int id) {
+        ObservableList<Libro> lista = libros.get(nombreLibro);
+        if (lista == null || lista.isEmpty()) return false;
+        boolean removido = lista.removeIf(l -> l.getIdInterno() == id);
+        if (removido && lista.isEmpty()) libros.remove(nombreLibro);
+        return removido;
+    }
+    
 }

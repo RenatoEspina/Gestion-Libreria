@@ -105,6 +105,14 @@ public class Inventario {
         return resultado != null ? resultado : FXCollections.emptyObservableList();
     }
 
+    public Libro encontrarLibro(int id) {
+        for (Seccion s : secciones.values())
+            for (ObservableList<Libro> lista : s.getLibros().values())
+                for (Libro l : lista)
+                    if (l.getIdInterno() == id) return l;
+        return null;
+    }
+    
     public boolean prestarLibro(Socio socio, Libro libro) {
         if (libro instanceof LibroPrestable) {
             socio.agregarLibroPrestado(libro);
