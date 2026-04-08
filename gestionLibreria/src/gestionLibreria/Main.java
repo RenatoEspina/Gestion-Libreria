@@ -45,18 +45,6 @@ public class Main extends Application {
     // 2. OBLIGATORIO: Método start para que la ventana funcione
     @Override
     public void start(Stage primaryStage) {
-        primaryStage.setTitle("Gestión de Librería");
-
-        // Ejemplo rápido de UI
-        VBox root = new VBox(10);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(20));
-        
-        Label label = new Label("Bienvenido al Sistema de Inventario");
-        root.getChildren().add(label);
-
-        Scene scene = new Scene(root, 400, 300);
-        primaryStage.setScene(scene);
-        primaryStage.show();
+    	new Ventana(primaryStage, inventario, gestor).iniciar();
     }
 }
