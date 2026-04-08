@@ -67,31 +67,30 @@ public class GestorPersistencia {
                     for (Libro l : lista) {
                         StringBuilder sb = new StringBuilder();
                         sb.append(escapeCSV(s.getNombre())).append(",");
-                        sb.append(l.getIdInterno()).append(",");
+                        sb.append(escapeCSV(l.getIdInterno())).append(",");        // antes: l.getIdInterno()
                         sb.append(escapeCSV(l.getTitulo())).append(",");
                         sb.append(escapeCSV(String.join(";", l.getAutores()))).append(",");
                         sb.append(escapeCSV(l.getEdicion())).append(",");
                         sb.append(escapeCSV(l.getCategoria())).append(",");
-                        sb.append(l.getPaginas()).append(",");
-                        sb.append(l.getFechaDePublicacion()).append(",");
-                        sb.append(l.getPrecio()).append(",");
+                        sb.append(escapeCSV(l.getPaginas())).append(",");          // antes: l.getPaginas()
+                        sb.append(escapeCSV(l.getFechaDePublicacion())).append(","); // antes: l.getFechaDePublicacion()
+                        sb.append(escapeCSV(l.getPrecio())).append(",");           // antes: l.getPrecio()
 
                         if (l instanceof LibroDigital) {
                             LibroDigital ld = (LibroDigital) l;
                             sb.append("DIGITAL,")
-                              .append(ld.getMemoria()).append(",")
+                              .append(escapeCSV(ld.getMemoria())).append(",")      // antes: ld.getMemoria()
                               .append(escapeCSV(ld.getFormato())).append(",,,,,");
                         } else if (l instanceof LibroPrestable) {
                             LibroPrestable lp = (LibroPrestable) l;
-                            // FIX: convertir boolean a String antes de escapeCSV
                             sb.append("PRESTABLE,,,")
-                              .append(escapeCSV(String.valueOf(lp.getDisponibilidad()))).append(",")
-                              .append(lp.getRetraso()).append(",")
-                              .append(lp.getMulta()).append(",")
-                              .append(lp.getFechaPrestamo()   != null ? lp.getFechaPrestamo()   : "").append(",")
-                              .append(lp.getFechaDevolucion() != null ? lp.getFechaDevolucion() : "");
+                              .append(escapeCSV(lp.getDisponibilidad())).append(",") // antes: escapeCSV(String.valueOf(...))
+                              .append(escapeCSV(lp.getRetraso())).append(",")        // antes: lp.getRetraso()
+                              .append(escapeCSV(lp.getMulta())).append(",")          // antes: lp.getMulta()
+                              .append(escapeCSV(lp.getFechaPrestamo())).append(",")  // antes: ternario con null
+                              .append(escapeCSV(lp.getFechaDevolucion()));           // antes: ternario con null
                         } else {
-                            sb.append("BASE,,,,,,,");
+                            sb.append("BASE,,,,,,,,");
                         }
                         writer.write(sb.toString() + "\n");
                     }
@@ -216,6 +215,10 @@ public class GestorPersistencia {
         }
         return value;
     }
+    
+    private String escapeCSV(int value)      { return String.valueOf(value); }
+    private String escapeCSV(boolean value)  { return String.valueOf(value); }
+    private String escapeCSV(LocalDate value){ return value != null ? value.toString() : ""; }
 
     private String unescapeCSV(String value) {
         if (value == null || value.isEmpty()) return "";
