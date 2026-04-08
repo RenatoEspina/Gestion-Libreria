@@ -138,6 +138,7 @@ public class Terminal {
         }
 
         seccion.agregarLibro(nuevo);
+        inventario.incrementarNumeroLibros();
         System.out.println("Libro agregado con exito!");
         Consola.enterParaContinuar();
     }

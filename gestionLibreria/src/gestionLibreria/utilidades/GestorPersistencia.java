@@ -91,7 +91,7 @@ public class GestorPersistencia {
                               .append(lp.getFechaPrestamo()   != null ? lp.getFechaPrestamo()   : "").append(",")
                               .append(lp.getFechaDevolucion() != null ? lp.getFechaDevolucion() : "");
                         } else {
-                            sb.append("BASE,,,,,,,,");
+                            sb.append("BASE,,,,,,,");
                         }
                         writer.write(sb.toString() + "\n");
                     }
@@ -123,6 +123,7 @@ public class GestorPersistencia {
         // FIX: coma trailing eliminada; usa el constructor de 2 parámetros añadido en Inventario
         Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
         cargarSecciones(inventario);
+        cargarLibros(inventario);
         cargarSocios(inventario);
         return inventario;
     }

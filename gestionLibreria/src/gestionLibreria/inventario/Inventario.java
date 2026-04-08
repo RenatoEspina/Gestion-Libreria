@@ -3,6 +3,8 @@ package gestionLibreria.inventario;
 import java.util.HashMap;
 import java.util.List;
 
+import java.time.LocalDate;
+
 import gestionLibreria.extensiones.*;
 
 import javafx.collections.FXCollections;
@@ -115,9 +117,12 @@ public class Inventario {
     
     public boolean prestarLibro(Socio socio, Libro libro) {
         if (libro instanceof LibroPrestable) {
+            LibroPrestable lp = (LibroPrestable) libro;
+            if (!lp.getDisponibilidad()) return false; // ya prestado
+            lp.setDisponibilidad(false);
+            lp.setFechaPrestamo(LocalDate.now());
             socio.agregarLibroPrestado(libro);
             return true;
         }
         return false;
-    }
-}
+    }}

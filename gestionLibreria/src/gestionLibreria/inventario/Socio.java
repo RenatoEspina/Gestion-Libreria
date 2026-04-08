@@ -101,8 +101,9 @@ public class Socio {
     	System.out.println("- RUT: " + getRut());
     	System.out.println("- Numero: " + getNumeroContacto());
     	System.out.print("- Libros prestados: ");
-    	for(Libro l : librosPrestados) {
-    		System.out.print(", " + l.getTitulo());
+    	for (int i = 0; i < librosPrestados.size(); i++) {
+    	    if (i > 0) System.out.print(", ");
+    	    System.out.print(librosPrestados.get(i).getTitulo());
     	}
     }
 }
