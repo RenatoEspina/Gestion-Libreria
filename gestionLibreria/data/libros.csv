@@ -1,5 +1,4 @@
 seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,precio,tipo,memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion
-Infantil,401,El Principito,Antoine de Saint-Exupery,Original,Fabula,96,1943-04-06,8000,DIGITAL,5,EPUB,,,,,
 Programacion,201,Clean Code,Robert C. Martin,1ra Edicion,Software,464,2008-08-01,35000,DIGITAL,15,PDF,,,,,
 Programacion,202,Java Moderno,Joshua Bloch;Ken Arnold,2da Edicion,Software,320,2022-01-15,12000,BASE,,,,,,,,
 Ficcion,101,Cien Anos de Soledad,Gabriel Garcia Marquez,RAE,Novela,496,1967-05-30,25000,BASE,,,,,,,,

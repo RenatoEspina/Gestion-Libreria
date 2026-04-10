@@ -16,12 +16,14 @@ public class GestorPersistencia {
     private final String rutaSecciones;
     private final String rutaLibros;
     private final String rutaSocios;
-
+    private final String rutaConfig;
+    
     public GestorPersistencia(String rutaBase) throws IOException {
         this.rutaSecciones = rutaBase + "secciones.csv";
         this.rutaLibros    = rutaBase + "libros.csv";
         this.rutaSocios    = rutaBase + "socios.csv";
-
+        this.rutaConfig    = rutaBase + "config.csv";
+        
         File carpeta = new File(rutaBase);
         if (!carpeta.exists()) carpeta.mkdirs();
 
@@ -30,6 +32,7 @@ public class GestorPersistencia {
             "seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,precio,tipo," +
             "memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
         crearArchivoSiNoExiste(rutaSocios, "nombre,rut,contacto,ids_prestados\n");
+        crearArchivoSiNoExiste(rutaConfig, "numero_de_libros\n");
     }
 
     private void crearArchivoSiNoExiste(String ruta, String encabezado) throws IOException {
@@ -47,8 +50,17 @@ public class GestorPersistencia {
         guardarSecciones(inventario);
         guardarLibros(inventario);
         guardarSocios(inventario);
+        guardarConfiguracion(inventario);
     }
 
+    private void guardarConfiguracion(Inventario inventario) throws IOException {
+        try (FileWriter writer = new FileWriter(rutaConfig)) {
+            writer.write("numero_de_libros\n");
+            // Guardamos el número actual de libros (histórico)
+            writer.write(inventario.getNumeroLibros() + "\n");
+        }
+    }
+    
     private void guardarSecciones(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaSecciones)) {
             writer.write("nombre_seccion\n");
@@ -124,9 +136,29 @@ public class GestorPersistencia {
         cargarSecciones(inventario);
         cargarLibros(inventario);
         cargarSocios(inventario);
+        cargarConfiguracion(inventario);
         return inventario;
     }
 
+    private void cargarConfiguracion(Inventario inv) throws IOException {
+        File f = new File(rutaConfig);
+        if(!f.exists()) return; // Por precaución
+
+        LectorCSV lector = new LectorCSV(rutaConfig);
+        List<List<String>> datos = lector.readAll();
+        
+        // Verificamos que tenga más de 1 línea (encabezado + datos)
+        if (datos.size() > 1) {
+            try {
+                // Obtenemos el valor guardado y se lo asignamos al inventario
+                int numLibros = Integer.parseInt(datos.get(1).get(0));
+                inv.setNumeroLibros(numLibros);
+            } catch (Exception e) {
+                System.err.println("Error al cargar configuración: " + e.getMessage());
+            }
+        }
+    }
+    
     private void cargarSecciones(Inventario inv) throws IOException {
         LectorCSV lector = new LectorCSV(rutaSecciones);
         List<List<String>> datos = lector.readAll();
