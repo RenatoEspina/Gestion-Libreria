@@ -11,9 +11,6 @@ import java.time.format.DateTimeParseException;
  * con validación integrada y manejo de errores. También incluye utilidades para
  * el control de la interfaz de usuario como limpieza de pantalla y pausas.
  * </p>
- * 
- * @author Renato Espina
- * @version 1.0
  * @see Scanner
  * @see LocalDate
  */

@@ -11,9 +11,6 @@ import java.util.List;
 /**
  * Clase utilitaria para leer y parsear archivos CSV.
  * Maneja campos entrecomillados y comillas escapadas.
- * 
- * @author Renato Espina
- * @version 2.0 (Adaptación a JavaFX)
  */
 public class LectorCSV {
 	/**

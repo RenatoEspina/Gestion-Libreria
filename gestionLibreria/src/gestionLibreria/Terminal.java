@@ -1,16 +1,23 @@
 package gestionLibreria;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import gestionLibreria.extensiones.*;
 import gestionLibreria.inventario.*;
 import gestionLibreria.utilidades.*;
-import gestionLibreria.extensiones.*;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+/**
+ * Modo terminal de la aplicación de gestión de librería.
+ * Provee un menú interactivo para gestionar inventario, socios, préstamos y reportes.
+ *
+ * @author Renato Espina
+ * @version 2.0
+ */
 public class Terminal {
 
     public static void modoTerminal(Inventario inventario, GestorPersistencia gestor) {
@@ -18,28 +25,35 @@ public class Terminal {
         Consola.enterParaContinuar();
 
         int decision = 0;
-        while (decision != 7) {
+        while (decision != 9) {
             Consola.limpiarPantalla();
-            System.out.println("=== Menu de Opciones ===");
-            System.out.println("1. Inventario");
-            System.out.println("2. Socios");
-            System.out.println("3. Registrar Socio");
-            System.out.println("4. Vender Libro");
-            System.out.println("5. Prestar Libro a Socio");
-            System.out.println("6. Buscar Libro por Nombre");
-            System.out.println("7. Salir");
-            decision = Consola.leerEntero("Opcion: ");
+            System.out.println("╔══════════════════════════════╗");
+            System.out.println("║   Gestión de Librería        ║");
+            System.out.println("╠══════════════════════════════╣");
+            System.out.println("║ 1. Ver Inventario            ║");
+            System.out.println("║ 2. Ver Socios                ║");
+            System.out.println("║ 3. Registrar Socio           ║");
+            System.out.println("║ 4. Vender Libro              ║");
+            System.out.println("║ 5. Prestar Libro a Socio     ║");
+            System.out.println("║ 6. Devolver Libro            ║");
+            System.out.println("║ 7. Buscar Libro por Nombre   ║");
+            System.out.println("║ 8. Filtros y Reporte Excel   ║");
+            System.out.println("║ 9. Guardar y Salir           ║");
+            System.out.println("╚══════════════════════════════╝");
+            decision = Consola.leerEntero("Opción: ");
             Consola.limpiarPantalla();
 
             switch (decision) {
-                case 1: menuInventario(inventario); break;
-                case 2: menuSocios(inventario);     break;
-                case 3: registrarSocio(inventario); break;
-                case 4: venderLibro(inventario);    break;
-                case 5: prestarLibro(inventario);   break;
-                case 6: buscarLibro(inventario);    break;
-                case 7: guardarYSalir(gestor, inventario); break;
-                default: System.out.println("Opcion invalida."); break;
+                case 1: menuInventario(inventario);     break;
+                case 2: menuSocios(inventario);         break;
+                case 3: registrarSocio(inventario);     break;
+                case 4: venderLibro(inventario);        break;
+                case 5: prestarLibro(inventario);       break;
+                case 6: devolverLibro(inventario);      break;
+                case 7: buscarLibro(inventario);        break;
+                case 8: filtrosYReporte(inventario);    break;
+                case 9: guardarYSalir(gestor, inventario); break;
+                default: System.out.println("Opción inválida."); Consola.enterParaContinuar(); break;
             }
         }
     }
@@ -48,10 +62,9 @@ public class Terminal {
     // Case 1 — Inventario
     // ---------------------------------------------------------------
     private static void menuInventario(Inventario inventario) {
-        ObservableList<Seccion> secciones =
-                FXCollections.observableArrayList(inventario.getSeccionesAsObservableList());
+        ObservableList<Seccion> secciones = inventario.getSeccionesAsObservableList();
 
-        if (secciones == null || secciones.isEmpty()) {
+        if (secciones.isEmpty()) {
             System.out.println("No existen secciones en el inventario.");
             Consola.enterParaContinuar();
             return;
@@ -61,90 +74,98 @@ public class Terminal {
         if (seccion == null) return;
 
         ObservableList<String> llaves = seccion.GetLlaves();
-        if (llaves == null || llaves.isEmpty()) {
-            System.out.println("Esta seccion esta vacia.");
+        if (llaves.isEmpty()) {
+            System.out.println("Esta sección está vacía.");
             Consola.enterParaContinuar();
             return;
         }
 
-        System.out.println("Libros en " + seccion.getNombre() + ":");
+        System.out.println("\nLibros en \"" + seccion.getNombre() + "\":");
         for (String nombre : llaves) System.out.println("  - " + nombre);
 
-        String opcion = Consola.leerString("¿Ver 'informacion' o 'agregar' libro?: ");
+        String opcion = Consola.leerString("\n¿Ver 'informacion' o 'agregar' libro?: ");
 
         if (opcion.equalsIgnoreCase("informacion")) {
             verInformacionLibro(seccion);
         } else if (opcion.equalsIgnoreCase("agregar")) {
             agregarLibroASeccion(inventario, seccion);
         } else {
-            System.out.println("Opcion no reconocida.");
+            System.out.println("Opción no reconocida.");
             Consola.enterParaContinuar();
         }
     }
 
-    private static Seccion seleccionarSeccion(Inventario inventario,
-                                               ObservableList<Seccion> secciones) {
+    private static Seccion seleccionarSeccion(Inventario inventario, ObservableList<Seccion> secciones) {
         while (true) {
             System.out.println("\n--- Secciones Disponibles ---");
             for (Seccion s : secciones) System.out.println("  - " + s.getNombre());
 
-            String nombre = Consola.leerString("Ingrese el nombre de la seccion: ");
+            String nombre = Consola.leerString("\nNombre de la sección (o 'cancelar'): ");
+            if (nombre.equalsIgnoreCase("cancelar")) return null;
             Seccion s = inventario.getSeccion(nombre);
             if (s != null) return s;
-            System.out.println("La seccion '" + nombre + "' no existe. Intente de nuevo.");
+            System.out.println("La sección '" + nombre + "' no existe.");
         }
     }
 
     private static void verInformacionLibro(Seccion seccion) {
-        String titulo = Consola.leerString("Ingrese el titulo del libro: ");
+        String titulo = Consola.leerString("Ingrese el título del libro: ");
         ObservableList<Libro> encontrados = seccion.encontrarLibrosPorTitulo(titulo);
 
         if (encontrados == null || encontrados.isEmpty()) {
             System.out.println("Libro no encontrado.");
         } else {
-            System.out.println("----------------------------------------");
             for (Libro l : encontrados) {
-                l.imprimirInformacion();
                 System.out.println("----------------------------------------");
+                l.imprimirInformacion();
             }
+            System.out.println("----------------------------------------");
         }
         Consola.enterParaContinuar();
     }
 
     private static void agregarLibroASeccion(Inventario inventario, Seccion seccion) {
-        String tipo = Consola.leerString("Tipo de libro (normal/arrendable/digital): ");
+        System.out.println("Tipo de libro:");
+        System.out.println("  1. Normal");
+        System.out.println("  2. Prestable");
+        System.out.println("  3. Digital");
+        int tipo = Consola.leerEntero("Tipo: ");
 
-        LocalDate fechaP  = Consola.leerFecha("Fecha de publicacion (yyyy-MM-dd): ");
-        String titulo     = Consola.leerString("Titulo: ");
-        String edicion    = Consola.leerString("Edicion: ");
-        String categoria  = Consola.leerString("Categoria: ");
-        int pag           = Consola.leerEntero("Numero de paginas: ");
+        LocalDate fechaP  = Consola.leerFecha("Fecha de publicación (yyyy-MM-dd): ");
+        String titulo     = Consola.leerString("Título: ");
+        String edicion    = Consola.leerString("Edición: ");
+        String categoria  = Consola.leerString("Categoría: ");
+        int pag           = Consola.leerEntero("Número de páginas: ");
         int id            = inventario.getNumeroLibros() + 1;
         int precio        = Consola.leerEntero("Precio: ");
         List<String> autores = leerAutores();
 
-        Libro nuevo = null;
-        if (tipo.equalsIgnoreCase("arrendable")) {
-            int multa = Consola.leerEntero("Multa por retraso: ");
-            nuevo = new LibroPrestable(fechaP, titulo, edicion, categoria, pag, id, precio,
-                                       (ArrayList<String>) autores, multa);
-        } else if (tipo.equalsIgnoreCase("digital")) {
-            int memoria   = Consola.leerEntero("Memoria (MB): ");
-            String formato = Consola.leerString("Formato (ej: PDF, EPUB): ");
-            nuevo = new LibroDigital(fechaP, titulo, edicion, categoria, pag, id, precio,
-                                     (ArrayList<String>) autores, memoria, formato);
-        } else {
-            nuevo = new Libro(fechaP, titulo, edicion, categoria, pag, id, precio, autores);
+        Libro nuevo;
+        switch (tipo) {
+            case 2:
+                int multa = Consola.leerEntero("Multa por retraso: ");
+                nuevo = new LibroPrestable(fechaP, titulo, edicion, categoria, pag, id, precio,
+                                           (ArrayList<String>) autores, multa);
+                break;
+            case 3:
+                int memoria    = Consola.leerEntero("Memoria (MB): ");
+                String formato = Consola.leerString("Formato (ej. PDF, EPUB): ");
+                nuevo = new LibroDigital(fechaP, titulo, edicion, categoria, pag, id, precio,
+                                         (ArrayList<String>) autores, memoria, formato);
+                break;
+            default:
+                nuevo = new Libro(fechaP, titulo, edicion, categoria, pag, id, precio, autores);
+                break;
         }
 
         seccion.agregarLibro(nuevo);
         inventario.incrementarNumeroLibros();
-        System.out.println("Libro agregado con exito!");
+        System.out.println("Libro agregado con éxito! (ID asignado: " + id + ")");
         Consola.enterParaContinuar();
     }
 
     private static List<String> leerAutores() {
-        int n = Consola.leerEntero("Cuantos autores desea ingresar?: ");
+        int n = Consola.leerEntero("¿Cuántos autores?: ");
         List<String> autores = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             autores.add(Consola.leerString("Autor " + (i + 1) + ": "));
@@ -156,26 +177,30 @@ public class Terminal {
     // Case 2 — Ver socios
     // ---------------------------------------------------------------
     private static void menuSocios(Inventario inventario) {
-        ObservableList<Socio> socios =
-                FXCollections.observableArrayList(inventario.getSociosAsObservableList());
+        ObservableList<Socio> socios = inventario.getSociosAsObservableList();
 
-        if (socios == null || socios.isEmpty()) {
-            System.out.println("No existen socios registrados.");
+        if (socios.isEmpty()) {
+            System.out.println("No hay socios registrados.");
             Consola.enterParaContinuar();
             return;
         }
 
+        System.out.println("\n--- Socios Registrados ---");
         for (Socio s : socios) {
-            System.out.println("  - " + s.getNombre() + " | " + s.getRut());
+            System.out.println("  " + s.getNombre() + " | RUT: " + s.getRut()
+                + " | Préstamos: " + s.getLibrosPrestados().size());
         }
 
-        String rut = Consola.leerString("Ingrese el RUT del socio: ");
-        Socio socio = inventario.getSocio(rut);
+        String rut = Consola.leerString("\nRUT del socio (o 'cancelar'): ");
+        if (rut.equalsIgnoreCase("cancelar")) return;
 
+        Socio socio = inventario.getSocio(rut);
         if (socio == null) {
             System.out.println("Socio no encontrado.");
         } else {
+            System.out.println("----------------------------------------");
             socio.mostrarInformacion();
+            System.out.println("\n----------------------------------------");
         }
         Consola.enterParaContinuar();
     }
@@ -185,15 +210,17 @@ public class Terminal {
     // ---------------------------------------------------------------
     private static void registrarSocio(Inventario inventario) {
         String nombre = Consola.leerString("Nombre del nuevo socio: ");
-        String rut    = Consola.leerString("RUT (formato xxxxxxxx-x): ");
-        String numero = Consola.leerString("Numero de telefono (+569xxxxxxxx): ");
+        String rut    = Consola.leerString("RUT (xxxxxxxx-x): ");
 
-        try {
-            inventario.setSocio(rut, new Socio(nombre, rut, numero));
-            System.out.println("Socio registrado con exito!");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        if (inventario.getSocio(rut) != null) {
+            System.out.println("Error: Ya existe un socio con ese RUT.");
+            Consola.enterParaContinuar();
+            return;
         }
+
+        String numero = Consola.leerString("Teléfono (+569xxxxxxxx): ");
+        inventario.setSocio(rut, new Socio(nombre, rut, numero));
+        System.out.println("Socio registrado con éxito!");
         Consola.enterParaContinuar();
     }
 
@@ -201,16 +228,12 @@ public class Terminal {
     // Case 4 — Vender libro
     // ---------------------------------------------------------------
     private static void venderLibro(Inventario inventario) {
-        try {
-            String nombre = Consola.leerString("Nombre del libro a vender: ");
-            Seccion seccion = inventario.encontrarSeccionDeLibro(nombre);
-            if (seccion == null) {
-                System.out.println("Libro no encontrado en ninguna seccion.");
-            } else {
-                seccion.venderLibro(nombre);
-            }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+        String nombre = Consola.leerString("Nombre del libro a vender: ");
+        Seccion seccion = inventario.encontrarSeccionDeLibro(nombre);
+        if (seccion == null) {
+            System.out.println("Libro no encontrado en ninguna sección.");
+        } else {
+            seccion.venderLibro(nombre);
         }
         Consola.enterParaContinuar();
     }
@@ -219,79 +242,240 @@ public class Terminal {
     // Case 5 — Prestar libro
     // ---------------------------------------------------------------
     private static void prestarLibro(Inventario inventario) {
-        try {
-            String rut    = Consola.leerString("RUT del socio: ");
-            String nombre = Consola.leerString("Nombre del libro: ");
+        String rut = Consola.leerString("RUT del socio: ");
+        Socio socio = inventario.getSocio(rut);
+        if (socio == null) {
+            System.out.println("Socio no encontrado.");
+            Consola.enterParaContinuar();
+            return;
+        }
 
-            Socio socio = inventario.getSocio(rut);
-            if (socio == null) {
-                System.out.println("Socio no encontrado.");
+        String nombre = Consola.leerString("Nombre del libro: ");
+        ObservableList<Libro> libros = inventario.encontrarLibro(nombre);
+        if (libros == null || libros.isEmpty()) {
+            System.out.println("Libro no encontrado.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        Libro libro;
+        if (libros.size() == 1) {
+            libro = libros.get(0);
+        } else {
+            System.out.println("Múltiples ejemplares encontrados:");
+            for (Libro l : libros) {
+                String disp = (l instanceof LibroPrestable)
+                    ? (((LibroPrestable) l).getDisponibilidad() ? " [Disponible]" : " [Prestado]")
+                    : "";
+                System.out.println("  ID " + l.getIdInterno() + " - " + l.getTitulo() + disp);
+            }
+            int idL = Consola.leerEntero("ID del libro: ");
+            libro = libros.stream().filter(l -> l.getIdInterno() == idL).findFirst().orElse(null);
+            if (libro == null) {
+                System.out.println("No se encontró un libro con ese ID.");
                 Consola.enterParaContinuar();
                 return;
             }
+        }
 
-            ObservableList<Libro> libros = inventario.encontrarLibro(nombre);
-            if (libros == null || libros.isEmpty()) {
-                System.out.println("Libro no encontrado.");
-                Consola.enterParaContinuar();
-                return;
+        boolean ok = inventario.prestarLibro(socio, libro);
+        System.out.println(ok ? "Préstamo realizado con éxito!" : "El libro no está disponible para préstamo.");
+        Consola.enterParaContinuar();
+    }
+
+    // ---------------------------------------------------------------
+    // Case 6 — Devolver libro (NUEVO)
+    // ---------------------------------------------------------------
+    private static void devolverLibro(Inventario inventario) {
+        String rut = Consola.leerString("RUT del socio: ");
+        Socio socio = inventario.getSocio(rut);
+        if (socio == null) {
+            System.out.println("Socio no encontrado.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        ObservableList<Libro> prestados = socio.getLibrosPrestados();
+        if (prestados.isEmpty()) {
+            System.out.println(socio.getNombre() + " no tiene libros prestados.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        System.out.println("\nLibros prestados a " + socio.getNombre() + ":");
+        for (Libro l : prestados) {
+            String fechaStr = "";
+            if (l instanceof LibroPrestable && ((LibroPrestable) l).getFechaPrestamo() != null) {
+                fechaStr = " (desde: " + ((LibroPrestable) l).getFechaPrestamo() + ")";
             }
+            System.out.println("  ID " + l.getIdInterno() + " - " + l.getTitulo() + fechaStr);
+        }
 
-            Libro libro;
-            if (libros.size() == 1) {
-                libro = libros.get(0);
-            } else {
-                int idL = Consola.leerEntero("Multiples ejemplares. Ingrese el ID del libro: ");
-                libro = libros.stream()
-                              .filter(l -> l.getIdInterno() == idL)
-                              .findFirst()
-                              .orElse(null);
-                if (libro == null) {
-                    System.out.println("No se encontro un libro con ese ID.");
-                    Consola.enterParaContinuar();
-                    return;
+        int id = Consola.leerEntero("ID del libro a devolver: ");
+        Libro libro = prestados.stream().filter(l -> l.getIdInterno() == id).findFirst().orElse(null);
+
+        if (libro == null) {
+            System.out.println("No se encontró ese libro en los préstamos del socio.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        if (libro instanceof LibroPrestable) {
+            LibroPrestable lp = (LibroPrestable) libro;
+
+            // Calcular días de retraso si hubo fecha de devolución programada
+            if (lp.getFechaDevolucion() != null && lp.getFechaDevolucion().isBefore(LocalDate.now())) {
+                long dias = java.time.temporal.ChronoUnit.DAYS.between(lp.getFechaDevolucion(), LocalDate.now());
+                lp.setRetraso((int) dias);
+                if (dias > 0) {
+                    int totalMulta = (int) dias * lp.getMulta();
+                    System.out.println("⚠ Libro devuelto con " + dias + " día(s) de retraso.");
+                    System.out.println("  Multa aplicada: $" + totalMulta);
                 }
             }
 
-            boolean ok = inventario.prestarLibro(socio, libro);
-            System.out.println(ok ? "Prestamo realizado con exito!" : "El libro no es prestable.");
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            lp.setDisponibilidad(true);
+            lp.setFechaPrestamo(null);
+            lp.setFechaDevolucion(null);
+            lp.setRetraso(0);
+            socio.quitarLibroPrestado(libro);
+            System.out.println("Libro devuelto con éxito!");
+        } else {
+            System.out.println("Error interno: el libro no es de tipo prestable.");
         }
         Consola.enterParaContinuar();
     }
 
     // ---------------------------------------------------------------
-    // Case 6 — Buscar libro por nombre
+    // Case 7 — Buscar libro
     // ---------------------------------------------------------------
     private static void buscarLibro(Inventario inventario) {
-        try {
-            String nombre = Consola.leerString("Nombre del libro: ");
-            ObservableList<Libro> libros = inventario.encontrarLibro(nombre);
-            if (libros == null || libros.isEmpty()) {
-                System.out.println("Libro no encontrado.");
-            } else {
-                for (Libro l : libros) {
-                    l.imprimirInformacion();
-                    System.out.println("----------------------------------------");
-                }
+        String nombre = Consola.leerString("Nombre del libro: ");
+        ObservableList<Libro> libros = inventario.encontrarLibro(nombre);
+        if (libros == null || libros.isEmpty()) {
+            System.out.println("Libro no encontrado.");
+        } else {
+            for (Libro l : libros) {
+                System.out.println("----------------------------------------");
+                l.imprimirInformacion();
             }
-        } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("----------------------------------------");
         }
         Consola.enterParaContinuar();
     }
 
     // ---------------------------------------------------------------
-    // Case 7 — Guardar y salir
+    // Case 8 — Filtros y Reporte Excel (NUEVO)
+    // ---------------------------------------------------------------
+    private static void filtrosYReporte(Inventario inventario) {
+        System.out.println("=== Filtros y Reporte Excel ===");
+        System.out.println("1. Filtrar por categoría");
+        System.out.println("2. Filtrar por precio mínimo");
+        System.out.println("3. Ver libros prestables disponibles");
+        System.out.println("4. Ver libros actualmente en préstamo");
+        int opcion = Consola.leerEntero("Tipo de filtro: ");
+
+        List<Libro> todos = getAllLibros(inventario);
+        List<Libro> filtrados = new ArrayList<>();
+        String descripcion;
+
+        switch (opcion) {
+            case 1:
+                String cat = Consola.leerString("Categoría a buscar (texto parcial): ");
+                descripcion = "Categoría contiene: '" + cat + "'";
+                for (Libro l : todos) {
+                    if (l.getCategoria().toLowerCase().contains(cat.toLowerCase())) filtrados.add(l);
+                }
+                break;
+            case 2:
+                int precioMin = Consola.leerEntero("Precio mínimo: ");
+                descripcion = "Precio >= " + precioMin;
+                for (Libro l : todos) {
+                    if (l.getPrecio() >= precioMin) filtrados.add(l);
+                }
+                break;
+            case 3:
+                descripcion = "Libros prestables disponibles";
+                for (Libro l : todos) {
+                    if (l instanceof LibroPrestable && ((LibroPrestable) l).getDisponibilidad()) filtrados.add(l);
+                }
+                break;
+            case 4:
+                descripcion = "Libros actualmente en préstamo";
+                for (Libro l : todos) {
+                    if (l instanceof LibroPrestable && !((LibroPrestable) l).getDisponibilidad()) filtrados.add(l);
+                }
+                break;
+            default:
+                System.out.println("Opción inválida.");
+                Consola.enterParaContinuar();
+                return;
+        }
+
+        if (filtrados.isEmpty()) {
+            System.out.println("No se encontraron libros con ese criterio.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        System.out.println("\n--- Resultados (" + filtrados.size() + " libro(s)) ---");
+        System.out.println("Filtro: " + descripcion);
+        System.out.println("----------------------------------------");
+        for (Libro l : filtrados) {
+            Seccion sec = inventario.encontrarSeccionDeLibro(l.getTitulo());
+            String tipo = l instanceof LibroDigital ? "Digital"
+                        : l instanceof LibroPrestable ? "Prestable"
+                        : "Base";
+            String dispStr = "";
+            if (l instanceof LibroPrestable) {
+                dispStr = " | " + (((LibroPrestable) l).getDisponibilidad() ? "Disponible" : "Prestado");
+            }
+            System.out.printf("  [%s] ID:%-4d %-35s Categoría: %-15s Precio: $%-6d Tipo: %s%s%n",
+                sec != null ? sec.getNombre() : "N/A",
+                l.getIdInterno(),
+                l.getTitulo(),
+                l.getCategoria(),
+                l.getPrecio(),
+                tipo,
+                dispStr
+            );
+        }
+        System.out.println("----------------------------------------");
+
+        String exportar = Consola.leerString("\n¿Exportar a Excel? (si/no): ");
+        if (exportar.equalsIgnoreCase("si")) {
+            String filename = "Reporte_" + opcion + "_" + LocalDate.now() + ".xlsx";
+            try {
+                ExportadorExcel.generarReporteLibros(inventario, filtrados, filename);
+                System.out.println("Reporte guardado como: " + filename);
+            } catch (IOException e) {
+                System.out.println("Error al generar Excel: " + e.getMessage());
+            }
+        }
+        Consola.enterParaContinuar();
+    }
+
+    // ---------------------------------------------------------------
+    // Case 9 — Guardar y salir
     // ---------------------------------------------------------------
     private static void guardarYSalir(GestorPersistencia gestor, Inventario inventario) {
         try {
             System.out.println("Guardando datos...");
             gestor.guardarTodo(inventario);
-            System.out.println("Datos guardados con exito!");
+            System.out.println("Datos guardados con éxito. ¡Hasta luego!");
         } catch (Exception e) {
             System.err.println("Error al guardar: " + e.getMessage());
         }
+    }
+
+    // ---------------------------------------------------------------
+    // Helper
+    // ---------------------------------------------------------------
+    private static List<Libro> getAllLibros(Inventario inventario) {
+        List<Libro> all = new ArrayList<>();
+        for (Seccion s : inventario.getSecciones().values())
+            for (ObservableList<Libro> lista : s.getLibros().values())
+                all.addAll(lista);
+        return all;
     }
 }
