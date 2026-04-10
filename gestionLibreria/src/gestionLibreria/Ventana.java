@@ -733,7 +733,7 @@ public class Ventana {
                 try {
                     ExportadorExcel.generarReporteLibros(inventario, libros, archivo.getAbsolutePath());
                     alerta(Alert.AlertType.INFORMATION, "Éxito", "Reporte guardado.", "Archivo: " + archivo.getName());
-                    ventana.close();
+                    //ventana.close();
                 } catch (IOException ex) {
                     alerta(Alert.AlertType.ERROR, "Error", "No se pudo guardar el Excel.", ex.getMessage());
                 }
