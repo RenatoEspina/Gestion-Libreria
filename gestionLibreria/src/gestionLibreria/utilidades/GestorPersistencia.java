@@ -1,29 +1,81 @@
 package gestionLibreria.utilidades;
 
-import gestionLibreria.inventario.*;
-import gestionLibreria.extensiones.*;
+import gestionLibreria.extensiones.LibroDigital;
+import gestionLibreria.extensiones.LibroPrestable;
+import gestionLibreria.inventario.Inventario;
+import gestionLibreria.inventario.Libro;
+import gestionLibreria.inventario.Seccion;
+import gestionLibreria.inventario.Socio;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
+
 import javafx.collections.ObservableList;
 
+/**
+ * Responsable de la persistencia del inventario en archivos CSV.
+ * <p>
+ * Gestiona cuatro archivos dentro de un directorio base:
+ * <ul>
+ *   <li>{@code secciones.csv} — nombres de las secciones del inventario.</li>
+ *   <li>{@code libros.csv}    — todos los ejemplares con sus atributos y tipo.</li>
+ *   <li>{@code socios.csv}    — datos de socios y los IDs de libros que tienen prestados.</li>
+ *   <li>{@code config.csv}    — contador histórico de libros para generar IDs únicos.</li>
+ * </ul>
+ * Si alguno de esos archivos no existe al construir el gestor, se crea con su encabezado.
+ * </p>
+ *
+ * <p>Los campos CSV se escapan correctamente para manejar comas, comillas y saltos de línea
+ * dentro de los valores.</p>
+ *
+ * @see LectorCSV
+ * @see Inventario
+ */
 public class GestorPersistencia {
+
+    // ---------------------------------------------------------------
+    // Campos
+    // ---------------------------------------------------------------
+
+    /** Ruta al archivo CSV de secciones. */
     private final String rutaSecciones;
+
+    /** Ruta al archivo CSV de libros. */
     private final String rutaLibros;
+
+    /** Ruta al archivo CSV de socios. */
     private final String rutaSocios;
+
+    /** Ruta al archivo CSV de configuración (contador de libros). */
     private final String rutaConfig;
-    
+
+    // ---------------------------------------------------------------
+    // Constructor
+    // ---------------------------------------------------------------
+
+    /**
+     * Construye el gestor de persistencia apuntando al directorio base indicado.
+     * <p>
+     * Si el directorio no existe, se crea. Si alguno de los archivos CSV tampoco
+     * existe, se inicializa con su encabezado correspondiente.
+     * </p>
+     *
+     * @param rutaBase ruta del directorio donde se almacenan los archivos CSV
+     *                 (p. ej. {@code "data/"})
+     * @throws IOException si ocurre un error al crear el directorio o los archivos
+     */
     public GestorPersistencia(String rutaBase) throws IOException {
         this.rutaSecciones = rutaBase + "secciones.csv";
         this.rutaLibros    = rutaBase + "libros.csv";
         this.rutaSocios    = rutaBase + "socios.csv";
         this.rutaConfig    = rutaBase + "config.csv";
-        
+
         File carpeta = new File(rutaBase);
         if (!carpeta.exists()) carpeta.mkdirs();
 
@@ -31,21 +83,20 @@ public class GestorPersistencia {
         crearArchivoSiNoExiste(rutaLibros,
             "seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,precio,tipo," +
             "memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
-        crearArchivoSiNoExiste(rutaSocios, "nombre,rut,contacto,ids_prestados\n");
-        crearArchivoSiNoExiste(rutaConfig, "numero_de_libros\n");
+        crearArchivoSiNoExiste(rutaSocios,  "nombre,rut,contacto,ids_prestados\n");
+        crearArchivoSiNoExiste(rutaConfig,  "numero_de_libros\n");
     }
 
-    private void crearArchivoSiNoExiste(String ruta, String encabezado) throws IOException {
-        File archivo = new File(ruta);
-        if (!archivo.exists()) {
-            try (FileWriter writer = new FileWriter(archivo)) {
-                writer.write(encabezado);
-            }
-        }
-    }
+    // ---------------------------------------------------------------
+    // API pública: guardar y cargar
+    // ---------------------------------------------------------------
 
-    // --- GUARDADO ---
-
+    /**
+     * Persiste el estado completo del inventario en los cuatro archivos CSV.
+     *
+     * @param inventario el inventario a guardar
+     * @throws IOException si ocurre un error de escritura en algún archivo
+     */
     public void guardarTodo(Inventario inventario) throws IOException {
         guardarSecciones(inventario);
         guardarLibros(inventario);
@@ -53,14 +104,49 @@ public class GestorPersistencia {
         guardarConfiguracion(inventario);
     }
 
+    /**
+     * Carga y reconstruye el inventario completo desde los archivos CSV.
+     * <p>
+     * El orden de carga es importante: primero secciones, luego libros (que
+     * se asignan a sus secciones) y finalmente socios (que referencian libros
+     * ya cargados por ID).
+     * </p>
+     *
+     * @return el {@link Inventario} con todos los datos restaurados
+     * @throws IOException si ocurre un error de lectura en algún archivo
+     */
+    public Inventario cargarTodo() throws IOException {
+        Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
+        cargarSecciones(inventario);
+        cargarLibros(inventario);
+        cargarSocios(inventario);
+        cargarConfiguracion(inventario);
+        return inventario;
+    }
+
+    // ---------------------------------------------------------------
+    // Guardado por archivo
+    // ---------------------------------------------------------------
+
+    /**
+     * Escribe el archivo de configuración con el contador histórico de libros.
+     *
+     * @param inventario inventario del que se extrae el contador
+     * @throws IOException si ocurre un error de escritura
+     */
     private void guardarConfiguracion(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaConfig)) {
             writer.write("numero_de_libros\n");
-            // Guardamos el número actual de libros (histórico)
             writer.write(inventario.getNumeroLibros() + "\n");
         }
     }
-    
+
+    /**
+     * Escribe el archivo de secciones con el nombre de cada sección del inventario.
+     *
+     * @param inventario inventario del que se extraen las secciones
+     * @throws IOException si ocurre un error de escritura
+     */
     private void guardarSecciones(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaSecciones)) {
             writer.write("nombre_seccion\n");
@@ -70,40 +156,52 @@ public class GestorPersistencia {
         }
     }
 
+    /**
+     * Escribe el archivo de libros con todos los ejemplares del inventario.
+     * <p>
+     * Cada libro se serializa según su tipo ({@code BASE}, {@code PRESTABLE} o
+     * {@code DIGITAL}), rellenando con vacíos las columnas que no apliquen.
+     * </p>
+     *
+     * @param inventario inventario del que se extraen los libros
+     * @throws IOException si ocurre un error de escritura
+     */
     private void guardarLibros(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaLibros)) {
             writer.write("seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,precio,tipo," +
                          "memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion\n");
+
             for (Seccion s : inventario.getSecciones().values()) {
                 for (ObservableList<Libro> lista : s.getLibros().values()) {
                     for (Libro l : lista) {
                         StringBuilder sb = new StringBuilder();
                         sb.append(escapeCSV(s.getNombre())).append(",");
-                        sb.append(escapeCSV(l.getIdInterno())).append(",");        // antes: l.getIdInterno()
+                        sb.append(escapeCSV(l.getIdInterno())).append(",");
                         sb.append(escapeCSV(l.getTitulo())).append(",");
                         sb.append(escapeCSV(String.join(";", l.getAutores()))).append(",");
                         sb.append(escapeCSV(l.getEdicion())).append(",");
                         sb.append(escapeCSV(l.getCategoria())).append(",");
-                        sb.append(escapeCSV(l.getPaginas())).append(",");          // antes: l.getPaginas()
-                        sb.append(escapeCSV(l.getFechaDePublicacion())).append(","); // antes: l.getFechaDePublicacion()
-                        sb.append(escapeCSV(l.getPrecio())).append(",");           // antes: l.getPrecio()
+                        sb.append(escapeCSV(l.getPaginas())).append(",");
+                        sb.append(escapeCSV(l.getFechaDePublicacion())).append(",");
+                        sb.append(escapeCSV(l.getPrecio())).append(",");
 
                         if (l instanceof LibroDigital) {
                             LibroDigital ld = (LibroDigital) l;
                             sb.append("DIGITAL,")
-                              .append(escapeCSV(ld.getMemoria())).append(",")      // antes: ld.getMemoria()
+                              .append(escapeCSV(ld.getMemoria())).append(",")
                               .append(escapeCSV(ld.getFormato())).append(",,,,,");
                         } else if (l instanceof LibroPrestable) {
                             LibroPrestable lp = (LibroPrestable) l;
                             sb.append("PRESTABLE,,,")
-                              .append(escapeCSV(lp.getDisponibilidad())).append(",") // antes: escapeCSV(String.valueOf(...))
-                              .append(escapeCSV(lp.getRetraso())).append(",")        // antes: lp.getRetraso()
-                              .append(escapeCSV(lp.getMulta())).append(",")          // antes: lp.getMulta()
-                              .append(escapeCSV(lp.getFechaPrestamo())).append(",")  // antes: ternario con null
-                              .append(escapeCSV(lp.getFechaDevolucion()));           // antes: ternario con null
+                              .append(escapeCSV(lp.getDisponibilidad())).append(",")
+                              .append(escapeCSV(lp.getRetraso())).append(",")
+                              .append(escapeCSV(lp.getMulta())).append(",")
+                              .append(escapeCSV(lp.getFechaPrestamo())).append(",")
+                              .append(escapeCSV(lp.getFechaDevolucion()));
                         } else {
                             sb.append("BASE,,,,,,,,");
                         }
+
                         writer.write(sb.toString() + "\n");
                     }
                 }
@@ -111,6 +209,13 @@ public class GestorPersistencia {
         }
     }
 
+    /**
+     * Escribe el archivo de socios con sus datos personales y los IDs de los
+     * libros que tienen actualmente en préstamo.
+     *
+     * @param inventario inventario del que se extraen los socios
+     * @throws IOException si ocurre un error de escritura
+     */
     private void guardarSocios(Inventario inventario) throws IOException {
         try (FileWriter writer = new FileWriter(rutaSocios)) {
             writer.write("nombre,rut,contacto,ids_prestados\n");
@@ -128,29 +233,25 @@ public class GestorPersistencia {
         }
     }
 
-    // --- CARGA ---
+    // ---------------------------------------------------------------
+    // Carga por archivo
+    // ---------------------------------------------------------------
 
-    public Inventario cargarTodo() throws IOException {
-        // FIX: coma trailing eliminada; usa el constructor de 2 parámetros añadido en Inventario
-        Inventario inventario = new Inventario(new HashMap<>(), new HashMap<>());
-        cargarSecciones(inventario);
-        cargarLibros(inventario);
-        cargarSocios(inventario);
-        cargarConfiguracion(inventario);
-        return inventario;
-    }
-
+    /**
+     * Carga la configuración (contador histórico de libros) desde {@code config.csv}.
+     *
+     * @param inv inventario al que se aplica el contador
+     * @throws IOException si ocurre un error de lectura
+     */
     private void cargarConfiguracion(Inventario inv) throws IOException {
         File f = new File(rutaConfig);
-        if(!f.exists()) return; // Por precaución
+        if (!f.exists()) return;
 
         LectorCSV lector = new LectorCSV(rutaConfig);
         List<List<String>> datos = lector.readAll();
-        
-        // Verificamos que tenga más de 1 línea (encabezado + datos)
+
         if (datos.size() > 1) {
             try {
-                // Obtenemos el valor guardado y se lo asignamos al inventario
                 int numLibros = Integer.parseInt(datos.get(1).get(0));
                 inv.setNumeroLibros(numLibros);
             } catch (Exception e) {
@@ -158,7 +259,13 @@ public class GestorPersistencia {
             }
         }
     }
-    
+
+    /**
+     * Carga las secciones desde {@code secciones.csv} y las registra en el inventario.
+     *
+     * @param inv inventario donde se registran las secciones
+     * @throws IOException si ocurre un error de lectura
+     */
     private void cargarSecciones(Inventario inv) throws IOException {
         LectorCSV lector = new LectorCSV(rutaSecciones);
         List<List<String>> datos = lector.readAll();
@@ -168,6 +275,15 @@ public class GestorPersistencia {
         }
     }
 
+    /**
+     * Carga los libros desde {@code libros.csv}, los instancia según su tipo y los
+     * agrega a las secciones correspondientes del inventario.
+     *
+     * @param inv inventario donde se registran los libros
+     * @return mapa de ID → {@link Libro} para que {@link #cargarSocios} pueda
+     *         referenciar los objetos ya instanciados
+     * @throws IOException si ocurre un error de lectura
+     */
     private HashMap<Integer, Libro> cargarLibros(Inventario inv) throws IOException {
         HashMap<Integer, Libro> librosCargados = new HashMap<>();
         LectorCSV lector = new LectorCSV(rutaLibros);
@@ -176,16 +292,17 @@ public class GestorPersistencia {
         for (int i = 1; i < datos.size(); i++) {
             List<String> f = datos.get(i);
             try {
-                String   secNombre = unescapeCSV(f.get(0));
-                int      id        = Integer.parseInt(f.get(1));
-                String   titulo    = unescapeCSV(f.get(2));
-                ArrayList<String> autores = new ArrayList<>(Arrays.asList(unescapeCSV(f.get(3)).split(";")));
-                String   edicion   = unescapeCSV(f.get(4));
-                String   cat       = unescapeCSV(f.get(5));
-                int      pag       = Integer.parseInt(f.get(6));
-                LocalDate fecha    = LocalDate.parse(f.get(7));
-                int      precio    = Integer.parseInt(f.get(8));
-                String   tipo      = f.get(9);
+                String    secNombre = unescapeCSV(f.get(0));
+                int       id        = Integer.parseInt(f.get(1));
+                String    titulo    = unescapeCSV(f.get(2));
+                ArrayList<String> autores = new ArrayList<>(
+                        Arrays.asList(unescapeCSV(f.get(3)).split(";")));
+                String    edicion   = unescapeCSV(f.get(4));
+                String    cat       = unescapeCSV(f.get(5));
+                int       pag       = Integer.parseInt(f.get(6));
+                LocalDate fecha     = LocalDate.parse(f.get(7));
+                int       precio    = Integer.parseInt(f.get(8));
+                String    tipo      = f.get(9);
 
                 Libro libro;
                 if ("DIGITAL".equals(tipo)) {
@@ -194,12 +311,11 @@ public class GestorPersistencia {
                     libro = new LibroDigital(fecha, titulo, edicion, cat, pag, id, precio,
                                              autores, memoria, formatoDigital);
                 } else if ("PRESTABLE".equals(tipo)) {
-                    // FIX: parsear String → boolean con Boolean.parseBoolean
-                    boolean disponibilidad = Boolean.parseBoolean(unescapeCSV(f.get(12)));
-                    int     retraso        = Integer.parseInt(f.get(13));
-                    int     multa          = Integer.parseInt(f.get(14));
-                    LocalDate fPrestamo    = f.get(15).isEmpty() ? null : LocalDate.parse(f.get(15));
-                    LocalDate fDevolucion  = f.get(16).isEmpty() ? null : LocalDate.parse(f.get(16));
+                    boolean   disponibilidad = Boolean.parseBoolean(unescapeCSV(f.get(12)));
+                    int       retraso        = Integer.parseInt(f.get(13));
+                    int       multa          = Integer.parseInt(f.get(14));
+                    LocalDate fPrestamo      = f.get(15).isEmpty() ? null : LocalDate.parse(f.get(15));
+                    LocalDate fDevolucion    = f.get(16).isEmpty() ? null : LocalDate.parse(f.get(16));
                     libro = new LibroPrestable(fecha, titulo, edicion, cat, pag, id, precio,
                                                autores, disponibilidad, retraso, multa,
                                                fPrestamo, fDevolucion);
@@ -212,27 +328,34 @@ public class GestorPersistencia {
                     librosCargados.put(id, libro);
                 }
             } catch (Exception e) {
-                System.err.println("Error en linea " + i + ": " + e.getMessage());
+                System.err.println("Error en línea " + i + ": " + e.getMessage());
             }
         }
         return librosCargados;
     }
 
+    /**
+     * Carga los socios desde {@code socios.csv} y les asigna los libros que tienen
+     * prestados, buscándolos en el inventario ya cargado por su ID.
+     *
+     * @param inv inventario con los libros ya cargados
+     * @throws IOException si ocurre un error de lectura
+     */
     private void cargarSocios(Inventario inv) throws IOException {
         LectorCSV lector = new LectorCSV(rutaSocios);
         List<List<String>> datos = lector.readAll();
 
         for (int i = 1; i < datos.size(); i++) {
-            List<String> f       = datos.get(i);
-            String nombre        = unescapeCSV(f.get(0));
-            String rut           = unescapeCSV(f.get(1));
-            String contacto      = unescapeCSV(f.get(2));
-            String idsStr        = f.size() > 3 ? unescapeCSV(f.get(3)) : "";
+            List<String> f    = datos.get(i);
+            String nombre     = unescapeCSV(f.get(0));
+            String rut        = unescapeCSV(f.get(1));
+            String contacto   = unescapeCSV(f.get(2));
+            String idsStr     = f.size() > 3 ? unescapeCSV(f.get(3)) : "";
 
             List<Libro> prestados = new ArrayList<>();
             if (!idsStr.isEmpty()) {
                 for (String idStr : idsStr.split(";")) {
-                	Libro l = inv.encontrarLibro(Integer.parseInt(idStr));
+                    Libro l = inv.encontrarLibro(Integer.parseInt(idStr));
                     if (l != null) prestados.add(l);
                 }
             }
@@ -240,6 +363,20 @@ public class GestorPersistencia {
         }
     }
 
+    // ---------------------------------------------------------------
+    // Utilidades CSV
+    // ---------------------------------------------------------------
+
+    /**
+     * Escapa un valor de texto para uso seguro en CSV.
+     * <p>
+     * Si el valor contiene comas, comillas o saltos de línea, se encierra entre
+     * comillas dobles y las comillas internas se duplican ({@code ""}).
+     * </p>
+     *
+     * @param value valor a escapar; retorna cadena vacía si es {@code null}
+     * @return valor escapado para CSV
+     */
     private String escapeCSV(String value) {
         if (value == null) return "";
         if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
@@ -247,11 +384,47 @@ public class GestorPersistencia {
         }
         return value;
     }
-    
-    private String escapeCSV(int value)      { return String.valueOf(value); }
-    private String escapeCSV(boolean value)  { return String.valueOf(value); }
-    private String escapeCSV(LocalDate value){ return value != null ? value.toString() : ""; }
 
+    /**
+     * Convierte un entero a su representación de texto para CSV.
+     *
+     * @param value valor entero
+     * @return representación en texto
+     */
+    private String escapeCSV(int value) {
+        return String.valueOf(value);
+    }
+
+    /**
+     * Convierte un booleano a su representación de texto para CSV.
+     *
+     * @param value valor booleano
+     * @return {@code "true"} o {@code "false"}
+     */
+    private String escapeCSV(boolean value) {
+        return String.valueOf(value);
+    }
+
+    /**
+     * Convierte una fecha a su representación ISO para CSV.
+     *
+     * @param value fecha; retorna cadena vacía si es {@code null}
+     * @return fecha en formato {@code YYYY-MM-DD} o cadena vacía
+     */
+    private String escapeCSV(LocalDate value) {
+        return value != null ? value.toString() : "";
+    }
+
+    /**
+     * Revierte el escapado CSV de un campo de texto.
+     * <p>
+     * Quita las comillas exteriores si las hay y convierte las dobles comillas
+     * internas en comillas simples.
+     * </p>
+     *
+     * @param value valor leído del CSV
+     * @return valor original sin escapado
+     */
     private String unescapeCSV(String value) {
         if (value == null || value.isEmpty()) return "";
         if (value.startsWith("\"") && value.endsWith("\"")) {
@@ -259,5 +432,25 @@ public class GestorPersistencia {
             return value.replace("\"\"", "\"");
         }
         return value;
+    }
+
+    // ---------------------------------------------------------------
+    // Inicialización de archivos
+    // ---------------------------------------------------------------
+
+    /**
+     * Crea un archivo CSV con el encabezado dado si todavía no existe.
+     *
+     * @param ruta      ruta del archivo a crear
+     * @param encabezado primera línea (encabezado) a escribir si se crea el archivo
+     * @throws IOException si ocurre un error al crear o escribir el archivo
+     */
+    private void crearArchivoSiNoExiste(String ruta, String encabezado) throws IOException {
+        File archivo = new File(ruta);
+        if (!archivo.exists()) {
+            try (FileWriter writer = new FileWriter(archivo)) {
+                writer.write(encabezado);
+            }
+        }
     }
 }

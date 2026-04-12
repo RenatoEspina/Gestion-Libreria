@@ -31,28 +31,50 @@ import org.jfree.chart.JFreeChart;
 
 /**
  * Ventana principal de la aplicación de gestión de librería en modo gráfico.
- * Permite gestionar secciones, libros y socios, y generar reportes filtrados con gráficos y Excel.
+ * Esta clase se encarga de orquestar la interfaz de usuario (JavaFX), permitiendo
+ * la gestión de secciones, libros y socios, además de la generación de reportes
+ * visuales con JFreeChart y exportación a Excel.
+ * * @author Tu Nombre/Equipo
+ * @version 1.0
  */
 public class Ventana {
 
+    /** Escenario principal de la aplicación. */
     private final Stage primaryStage;
+    
+    /** Referencia al inventario que contiene los datos de la librería. */
     private final Inventario inventario;
+    
+    /** Gestor encargado de la lectura y escritura de archivos de datos. */
     private final GestorPersistencia gestor;
 
     // ---------------------------------------------------------------
     // Constructor e inicio
     // ---------------------------------------------------------------
 
+    /**
+     * Construye una nueva instancia de la Ventana principal.
+     * * @param primaryStage El escenario (Stage) principal de JavaFX.
+     * @param inventario El objeto inventario que se va a gestionar.
+     * @param gestor El gestor de persistencia para guardar/cargar datos.
+     */
     public Ventana(Stage primaryStage, Inventario inventario, GestorPersistencia gestor) {
         this.primaryStage = primaryStage;
         this.inventario   = inventario;
         this.gestor       = gestor;
     }
 
+    /**
+     * Configura la escena inicial, el título y muestra la ventana principal.
+     * También define el comportamiento al cerrar la ventana.
+     */
     public void iniciar() {
         primaryStage.setTitle("Gestión de Librería");
         primaryStage.setScene(new Scene(crearMenuPrincipal(), 460, 460));
-        primaryStage.setOnCloseRequest(event -> { event.consume(); salirYGuardar(); });
+        primaryStage.setOnCloseRequest(event -> { 
+            event.consume(); 
+            salirYGuardar(); 
+        });
         primaryStage.show();
     }
 
@@ -60,6 +82,10 @@ public class Ventana {
     // Menú principal
     // ---------------------------------------------------------------
 
+    /**
+     * Crea el panel principal con los botones de navegación de la aplicación.
+     * * @return Un contenedor VBox con el diseño del menú principal.
+     */
     private VBox crearMenuPrincipal() {
         Label titulo = new Label("Sistema de Gestión de Librería");
         titulo.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #222;");
@@ -71,7 +97,7 @@ public class Ventana {
         Button btnLibros    = boton("📖 Gestionar Libros",    estiloAzul, e -> abrirVentanaLibros());
         Button btnSocios    = boton("👤 Gestionar Socios",    estiloAzul, e -> abrirVentanaSocios());
         Button btnFiltros   = boton("🔍 Filtros y Reportes",  estiloAzul, e -> logicaFiltros());
-        Button btnSalir     = boton("💾 Guardar y Salir",     estiloRojo, e -> salirYGuardar());
+        Button btnSalir     = boton("💾 Guardar y Salir",      estiloRojo, e -> salirYGuardar());
 
         for (Button b : new Button[]{btnSecciones, btnLibros, btnSocios, btnFiltros, btnSalir})
             b.setMaxWidth(300);
@@ -83,6 +109,13 @@ public class Ventana {
         return root;
     }
 
+    /**
+     * Método auxiliar para crear botones con un estilo y acción específica.
+     * * @param texto El texto que mostrará el botón.
+     * @param estilo El string CSS para el estilo del botón.
+     * @param handler El manejador de eventos para el clic.
+     * @return Un objeto Button configurado.
+     */
     private Button boton(String texto, String estilo, javafx.event.EventHandler<javafx.event.ActionEvent> handler) {
         Button b = new Button(texto);
         b.setStyle(estilo);
@@ -90,6 +123,10 @@ public class Ventana {
         return b;
     }
 
+    /**
+     * Intenta guardar los datos actuales en el disco y cierra la aplicación.
+     * Muestra una alerta de éxito o de error según el resultado.
+     */
     private void salirYGuardar() {
         try {
             gestor.guardarTodo(inventario);
@@ -104,6 +141,9 @@ public class Ventana {
     // Gestionar Secciones
     // ---------------------------------------------------------------
 
+    /**
+     * Abre una ventana modal para ver, agregar o eliminar secciones del inventario.
+     */
     private void abrirVentanaSecciones() {
         Stage ventana = ventanaModal("Gestionar Secciones");
 
@@ -162,10 +202,13 @@ public class Ventana {
     // Gestionar Libros
     // ---------------------------------------------------------------
 
+    /**
+     * Abre la ventana de gestión de libros, permitiendo buscar, filtrar,
+     * agregar, eliminar, vender, prestar y devolver libros.
+     */
     private void abrirVentanaLibros() {
         Stage ventana = ventanaModal("Gestionar Libros");
 
-        // Top: combo sección + buscador
         Label lblSec = new Label("Sección:");
         ObservableList<Seccion> seccionesItems = FXCollections.observableArrayList();
         seccionesItems.add(null);
@@ -183,7 +226,6 @@ public class Ventana {
         HBox topBar = new HBox(10, lblSec, comboSec, buscador);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-        // Tabla
         TableView<Libro> tabla = new TableView<>();
         configurarTablaLibros(tabla);
 
@@ -204,7 +246,6 @@ public class Ventana {
 
         buscador.textProperty().addListener((obs, old, nuevo) -> filtrarTabla(listaFiltrada, nuevo));
 
-        // Botones derecha
         Button btnAgregar  = new Button("Agregar Libro...");
         Button btnEliminar = new Button("Eliminar Libro");
         Button btnPrestar  = new Button("Prestar Libro...");
@@ -216,7 +257,6 @@ public class Ventana {
         for (Button b : new Button[]{btnAgregar, btnEliminar, btnPrestar, btnDevolver, btnVender})
             b.setMaxWidth(Double.MAX_VALUE);
 
-        // Acciones
         btnAgregar.setOnAction(e -> {
             Seccion sec = comboSec.getValue();
             if (sec == null) { alerta(Alert.AlertType.WARNING, "Aviso", "Seleccione una sección específica para agregar.", null); return; }
@@ -276,6 +316,10 @@ public class Ventana {
         ventana.showAndWait();
     }
 
+    /**
+     * Define la visualización de las secciones en los ComboBox.
+     * * @return Una celda personalizada para la lista de secciones.
+     */
     private ListCell<Seccion> celdaSeccion() {
         return new ListCell<Seccion>() {
             @Override protected void updateItem(Seccion s, boolean empty) {
@@ -285,11 +329,20 @@ public class Ventana {
         };
     }
 
+    /**
+     * Aplica el predicado de filtrado a la lista de libros de la tabla.
+     * * @param lista La lista filtrada vinculada a la tabla.
+     * @param texto El texto de búsqueda.
+     */
     private void filtrarTabla(FilteredList<Libro> lista, String texto) {
         lista.setPredicate(l -> texto == null || texto.isEmpty()
             || l.getTitulo().toLowerCase().contains(texto.toLowerCase()));
     }
 
+    /**
+     * Configura las columnas de la tabla de libros, definiendo de dónde obtiene los datos cada una.
+     * * @param tabla La tabla de JavaFX a configurar.
+     */
     @SuppressWarnings("unchecked")
     private void configurarTablaLibros(TableView<Libro> tabla) {
         TableColumn<Libro, String>  colSec  = new TableColumn<>("Sección");
@@ -330,6 +383,11 @@ public class Ventana {
         tabla.setPlaceholder(new Label("No hay libros que mostrar."));
     }
 
+    /**
+     * Muestra un diálogo emergente para ingresar los datos de un nuevo libro
+     * y agregarlo a la sección correspondiente.
+     * * @param seccion La sección donde se guardará el libro.
+     */
     private void mostrarDialogoAgregarLibro(Seccion seccion) {
         Dialog<Libro> dialog = new Dialog<>();
         dialog.setTitle("Agregar Libro");
@@ -343,11 +401,11 @@ public class Ventana {
         grid.setPadding(new Insets(15));
 
         TextField fTitulo    = field("Título");
-        TextField fEdicion   = field("Edición (ej. 1ra)");
+        TextField fEdicion    = field("Edición (ej. 1ra)");
         TextField fCategoria = field("Categoría");
-        TextField fPaginas   = field("Número entero");
-        TextField fPrecio    = field("Número entero");
-        TextField fAutores   = field("Autor1; Autor2; ...");
+        TextField fPaginas    = field("Número entero");
+        TextField fPrecio     = field("Número entero");
+        TextField fAutores    = field("Autor1; Autor2; ...");
         TextField fFechaPub  = field("YYYY-MM-DD (vacío = hoy)");
 
         ComboBox<String> comboTipo = new ComboBox<>(FXCollections.observableArrayList("Base", "Digital", "Prestable"));
@@ -423,6 +481,11 @@ public class Ventana {
         dialog.showAndWait();
     }
 
+    /**
+     * Ejecuta la lógica para prestar un libro a un socio identificado por su RUT.
+     * * @param libro El libro a prestar (debe ser de tipo LibroPrestable).
+     * @param tabla La tabla de la UI para refrescar los datos.
+     */
     private void logicaPrestarLibro(Libro libro, TableView<Libro> tabla) {
         if (!(libro instanceof LibroPrestable)) {
             alerta(Alert.AlertType.WARNING, "No prestable", "Este libro no admite préstamos.", null); return;
@@ -444,6 +507,11 @@ public class Ventana {
         });
     }
 
+    /**
+     * Ejecuta la lógica para devolver un libro que estaba en préstamo.
+     * * @param libro El libro a devolver.
+     * @param tabla La tabla de la UI para refrescar los datos.
+     */
     private void logicaDevolverLibro(Libro libro, TableView<Libro> tabla) {
         if (!(libro instanceof LibroPrestable)) {
             alerta(Alert.AlertType.WARNING, "No prestable", "Este libro no es de tipo prestable.", null); return;
@@ -478,6 +546,9 @@ public class Ventana {
     // Gestionar Socios
     // ---------------------------------------------------------------
 
+    /**
+     * Abre una ventana modal para la gestión de socios de la librería.
+     */
     private void abrirVentanaSocios() {
         Stage ventana = ventanaModal("Gestionar Socios");
 
@@ -536,6 +607,9 @@ public class Ventana {
         ventana.showAndWait();
     }
 
+    /**
+     * Muestra un diálogo para capturar los datos de un nuevo socio y registrarlo en el sistema.
+     */
     private void mostrarDialogoRegistrarSocio() {
         Dialog<Socio> dialog = new Dialog<>();
         dialog.setTitle("Registrar Socio"); dialog.setHeaderText("Datos del nuevo socio");
@@ -575,6 +649,10 @@ public class Ventana {
         });
     }
 
+    /**
+     * Muestra la información detallada de un socio y permite gestionar sus devoluciones.
+     * * @param socio El socio del cual mostrar el detalle.
+     */
     private void mostrarDetalleSocio(Socio socio) {
         Stage ventana = ventanaModal("Detalle: " + socio.getNombre());
 
@@ -627,6 +705,10 @@ public class Ventana {
     // Filtros y Reportes
     // ---------------------------------------------------------------
 
+    /**
+     * Muestra un diálogo para filtrar libros por diversos criterios y
+     * proceder a visualizar el gráfico estadístico.
+     */
     private void logicaFiltros() {
         Dialog<Object[]> dialog = new Dialog<>();
         dialog.setTitle("Filtros y Reportes");
@@ -691,6 +773,12 @@ public class Ventana {
         });
     }
 
+    /**
+     * Aplica la lógica de filtrado sobre la lista completa de libros.
+     * * @param tipo El tipo de filtro (CATEGORIA, PRECIO, DISPONIBLES, PRESTADOS).
+     * @param valor El valor a comparar (String para categoría, Integer para precio, null otros).
+     * @return Una sublista con los libros que cumplen el criterio.
+     */
     private List<Libro> filtrarLibros(String tipo, Object valor) {
         List<Libro> resultado = new ArrayList<>();
         for (Libro l : getAllLibros()) {
@@ -712,6 +800,13 @@ public class Ventana {
         return resultado;
     }
 
+    /**
+     * Muestra una ventana con un gráfico de JFreeChart basado en los libros filtrados
+     * y ofrece la opción de exportar los datos a Excel.
+     * * @param libros Lista de libros a incluir en el reporte.
+     * @param tipo El tipo de filtro aplicado (para el nombre del archivo).
+     * @param tituloGrafico El título que se mostrará en el gráfico.
+     */
     private void mostrarVentanaGraficoYReporte(List<Libro> libros, String tipo, String tituloGrafico) {
         Stage ventana = ventanaModal("Reporte: " + tituloGrafico);
 
@@ -733,7 +828,6 @@ public class Ventana {
                 try {
                     ExportadorExcel.generarReporteLibros(inventario, libros, archivo.getAbsolutePath());
                     alerta(Alert.AlertType.INFORMATION, "Éxito", "Reporte guardado.", "Archivo: " + archivo.getName());
-                    //ventana.close();
                 } catch (IOException ex) {
                     alerta(Alert.AlertType.ERROR, "Error", "No se pudo guardar el Excel.", ex.getMessage());
                 }
@@ -759,6 +853,10 @@ public class Ventana {
     // Helpers reutilizables
     // ---------------------------------------------------------------
 
+    /**
+     * Recorre todas las secciones y devuelve una lista única con todos los libros del inventario.
+     * * @return Una lista plana con todos los objetos Libro.
+     */
     private List<Libro> getAllLibros() {
         List<Libro> all = new ArrayList<>();
         for (Seccion s : inventario.getSecciones().values())
@@ -767,6 +865,11 @@ public class Ventana {
         return all;
     }
 
+    /**
+     * Crea un nuevo escenario (Stage) configurado como ventana modal.
+     * * @param titulo El título de la ventana.
+     * @return El Stage configurado.
+     */
     private Stage ventanaModal(String titulo) {
         Stage v = new Stage();
         v.initModality(Modality.APPLICATION_MODAL);
@@ -774,12 +877,24 @@ public class Ventana {
         return v;
     }
 
+    /**
+     * Crea un TextField con un texto de sugerencia (prompt) configurado.
+     * * @param prompt El texto de ayuda dentro del campo.
+     * @return El objeto TextField.
+     */
     private TextField field(String prompt) {
         TextField f = new TextField();
         f.setPromptText(prompt);
         return f;
     }
 
+    /**
+     * Muestra un cuadro de diálogo de alerta al usuario.
+     * * @param tipo El tipo de alerta (ERROR, INFORMATION, WARNING, etc.).
+     * @param titulo El título de la ventana de alerta.
+     * @param encabezado El texto de cabecera.
+     * @param contenido El texto de contenido detallado (opcional).
+     */
     private void alerta(Alert.AlertType tipo, String titulo, String encabezado, String contenido) {
         Alert a = new Alert(tipo);
         a.setTitle(titulo);
