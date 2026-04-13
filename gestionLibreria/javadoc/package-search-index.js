@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"gestionLibreria"},{"l":"gestionLibreria.excepciones"},{"l":"gestionLibreria.extensiones"},{"l":"gestionLibreria.inventario"},{"l":"gestionLibreria.utilidades"}];updateSearchResults();
