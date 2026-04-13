@@ -5,15 +5,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import gestionLibreria.extensiones.LibroDigital;
-import gestionLibreria.extensiones.LibroPrestable;
-import gestionLibreria.inventario.Inventario;
-import gestionLibreria.inventario.Libro;
-import gestionLibreria.inventario.Seccion;
-import gestionLibreria.inventario.Socio;
-import gestionLibreria.utilidades.Consola;
-import gestionLibreria.utilidades.ExportadorExcel;
-import gestionLibreria.utilidades.GestorPersistencia;
+import gestionLibreria.excepciones.*;
+import gestionLibreria.extensiones.*;
+import gestionLibreria.inventario.*;
+import gestionLibreria.utilidades.*;
 
 import javafx.collections.ObservableList;
 
@@ -247,32 +242,33 @@ public class Terminal {
      * detallada de uno en particular ingresando su RUT.
      *
      * @param inventario inventario del que se obtienen los socios
+     * @throws SocioNoEncontradoException si no existe ningún socio con ese rut
      */
     private static void menuSocios(Inventario inventario) {
         ObservableList<Socio> socios = inventario.getSociosAsObservableList();
-
+ 
         if (socios.isEmpty()) {
             System.out.println("No hay socios registrados.");
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         System.out.println("\n--- Socios Registrados ---");
         for (Socio s : socios) {
             System.out.println("  " + s.getNombre() + " | RUT: " + s.getRut()
                 + " | Préstamos: " + s.getLibrosPrestados().size());
         }
-
+ 
         String rut = Consola.leerString("\nRUT del socio (o 'cancelar'): ");
         if (rut.equalsIgnoreCase("cancelar")) return;
-
-        Socio socio = inventario.getSocio(rut);
-        if (socio == null) {
-            System.out.println("Socio no encontrado.");
-        } else {
+ 
+        try {
+            Socio socio = inventario.getSocio(rut);
             System.out.println("----------------------------------------");
             socio.mostrarInformacion();
             System.out.println("\n----------------------------------------");
+        } catch (SocioNoEncontradoException e) {
+            System.out.println(e.getMessage());
         }
         Consola.enterParaContinuar();
     }
@@ -286,17 +282,18 @@ public class Terminal {
      * Verifica que el RUT no esté duplicado antes de registrar.
      *
      * @param inventario inventario donde se registra el nuevo socio
+     * @throws SocioNoEncontradoException si no existe ningún socio con ese rut
      */
     private static void registrarSocio(Inventario inventario) {
         String nombre = Consola.leerString("Nombre del nuevo socio: ");
         String rut    = Consola.leerString("RUT (xxxxxxxx-x): ");
-
-        if (inventario.getSocio(rut) != null) {
+ 
+        if (inventario.getSocios().containsKey(rut)) {
             System.out.println("Error: Ya existe un socio con ese RUT.");
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         String numero = Consola.leerString("Teléfono (+569xxxxxxxx): ");
         inventario.setSocio(rut, new Socio(nombre, rut, numero));
         System.out.println("Socio registrado con éxito!");
@@ -333,16 +330,20 @@ public class Terminal {
      * si el libro es de tipo {@link LibroPrestable} y está disponible.
      *
      * @param inventario inventario donde se busca el libro y el socio
+     * @throws SocioNoEncontradoException si no existe ningún socio con ese rut
+     * @throws LibroNoEncontradoException si no existe ningún libro con ese ID
      */
     private static void prestarLibro(Inventario inventario) {
         String rut = Consola.leerString("RUT del socio: ");
-        Socio socio = inventario.getSocio(rut);
-        if (socio == null) {
-            System.out.println("Socio no encontrado.");
+        Socio socio;
+        try {
+            socio = inventario.getSocio(rut);
+        } catch (SocioNoEncontradoException e) {
+            System.out.println(e.getMessage());
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         String nombre = Consola.leerString("Nombre del libro: ");
         ObservableList<Libro> libros = inventario.encontrarLibro(nombre);
         if (libros == null || libros.isEmpty()) {
@@ -350,27 +351,32 @@ public class Terminal {
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         Libro libro;
-        if (libros.size() == 1) {
-            libro = libros.get(0);
-        } else {
-            System.out.println("Múltiples ejemplares encontrados:");
-            for (Libro l : libros) {
-                String disp = (l instanceof LibroPrestable)
-                    ? (((LibroPrestable) l).getDisponibilidad() ? " [Disponible]" : " [Prestado]")
-                    : "";
-                System.out.println("  ID " + l.getIdInterno() + " - " + l.getTitulo() + disp);
+        try {
+            if (libros.size() == 1) {
+                libro = libros.get(0);
+            } else {
+                System.out.println("Múltiples ejemplares encontrados:");
+                for (Libro l : libros) {
+                    String disp = (l instanceof LibroPrestable)
+                        ? (((LibroPrestable) l).getDisponibilidad() ? " [Disponible]" : " [Prestado]")
+                        : "";
+                    System.out.println("  ID " + l.getIdInterno() + " - " + l.getTitulo() + disp);
+                }
+                int idL = Consola.leerEntero("ID del libro: ");
+                libro = libros.stream()
+                    .filter(l -> l.getIdInterno() == idL)
+                    .findFirst()
+                    .orElseThrow(() -> new LibroNoEncontradoException(
+                        "No se encontró un libro con ID: " + idL));
             }
-            int idL = Consola.leerEntero("ID del libro: ");
-            libro = libros.stream().filter(l -> l.getIdInterno() == idL).findFirst().orElse(null);
-            if (libro == null) {
-                System.out.println("No se encontró un libro con ese ID.");
-                Consola.enterParaContinuar();
-                return;
-            }
+        } catch (LibroNoEncontradoException e) {
+            System.out.println(e.getMessage());
+            Consola.enterParaContinuar();
+            return;
         }
-
+ 
         boolean ok = inventario.prestarLibro(socio, libro);
         System.out.println(ok
             ? "Préstamo realizado con éxito!"
@@ -390,23 +396,27 @@ public class Terminal {
      * </p>
      *
      * @param inventario inventario donde se busca al socio y su lista de préstamos
+     * @throws SocioNoEncontradoException si no existe ningún socio con ese rut
+     * @throws LibroNoEncontradoException si no existe ningún libro con ese ID
      */
     private static void devolverLibro(Inventario inventario) {
         String rut = Consola.leerString("RUT del socio: ");
-        Socio socio = inventario.getSocio(rut);
-        if (socio == null) {
-            System.out.println("Socio no encontrado.");
+        Socio socio;
+        try {
+            socio = inventario.getSocio(rut);
+        } catch (SocioNoEncontradoException e) {
+            System.out.println(e.getMessage());
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         ObservableList<Libro> prestados = socio.getLibrosPrestados();
         if (prestados.isEmpty()) {
             System.out.println(socio.getNombre() + " no tiene libros prestados.");
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         System.out.println("\nLibros prestados a " + socio.getNombre() + ":");
         for (Libro l : prestados) {
             String fechaStr = "";
@@ -415,28 +425,27 @@ public class Terminal {
             }
             System.out.println("  ID " + l.getIdInterno() + " - " + l.getTitulo() + fechaStr);
         }
-
+ 
         int id = Consola.leerEntero("ID del libro a devolver: ");
         Libro libro = prestados.stream()
                                .filter(l -> l.getIdInterno() == id)
                                .findFirst()
                                .orElse(null);
-
+ 
         if (libro == null) {
             System.out.println("No se encontró ese libro en los préstamos del socio.");
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         if (!(libro instanceof LibroPrestable)) {
             System.out.println("Error interno: el libro no es de tipo prestable.");
             Consola.enterParaContinuar();
             return;
         }
-
+ 
         LibroPrestable lp = (LibroPrestable) libro;
-
-        // Calcular y mostrar multa si existe retraso
+ 
         if (lp.getFechaDevolucion() != null && lp.getFechaDevolucion().isBefore(LocalDate.now())) {
             long dias = java.time.temporal.ChronoUnit.DAYS.between(lp.getFechaDevolucion(), LocalDate.now());
             lp.setRetraso((int) dias);
@@ -446,8 +455,7 @@ public class Terminal {
                 System.out.println("  Multa aplicada: $" + totalMulta);
             }
         }
-
-        // Restablecer estado del libro
+ 
         lp.setDisponibilidad(true);
         lp.setFechaPrestamo(null);
         lp.setFechaDevolucion(null);

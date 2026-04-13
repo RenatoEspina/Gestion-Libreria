@@ -1,5 +1,6 @@
 package gestionLibreria;
 
+import gestionLibreria.excepciones.*;
 import gestionLibreria.extensiones.*;
 import gestionLibreria.inventario.*;
 import gestionLibreria.utilidades.*;
@@ -483,8 +484,9 @@ public class Ventana {
 
     /**
      * Ejecuta la lógica para prestar un libro a un socio identificado por su RUT.
-     * * @param libro El libro a prestar (debe ser de tipo LibroPrestable).
+     * @param libro El libro a prestar (debe ser de tipo LibroPrestable).
      * @param tabla La tabla de la UI para refrescar los datos.
+     * Captura {@link SocioNoEncontradoException} si el RUT no está registrado.
      */
     private void logicaPrestarLibro(Libro libro, TableView<Libro> tabla) {
         if (!(libro instanceof LibroPrestable)) {
@@ -494,15 +496,18 @@ public class Ventana {
         if (!lp.getDisponibilidad()) {
             alerta(Alert.AlertType.WARNING, "No disponible", "Este libro ya está prestado.", null); return;
         }
-
+ 
         TextInputDialog d = new TextInputDialog();
         d.setTitle("Prestar Libro"); d.setHeaderText("Prestar: " + libro.getTitulo()); d.setContentText("RUT del socio:");
         d.showAndWait().ifPresent(rut -> {
-            Socio socio = inventario.getSocio(rut.trim());
-            if (socio == null) { alerta(Alert.AlertType.ERROR, "Error", "Socio no encontrado.", null); return; }
-            if (inventario.prestarLibro(socio, libro)) {
-                tabla.refresh();
-                alerta(Alert.AlertType.INFORMATION, "Éxito", "Libro prestado a " + socio.getNombre() + ".", null);
+            try {
+                Socio socio = inventario.getSocio(rut.trim());
+                if (inventario.prestarLibro(socio, libro)) {
+                    tabla.refresh();
+                    alerta(Alert.AlertType.INFORMATION, "Éxito", "Libro prestado a " + socio.getNombre() + ".", null);
+                }
+            } catch (SocioNoEncontradoException e) {
+                alerta(Alert.AlertType.ERROR, "Error", e.getMessage(), null);
             }
         });
     }
@@ -613,34 +618,34 @@ public class Ventana {
     private void mostrarDialogoRegistrarSocio() {
         Dialog<Socio> dialog = new Dialog<>();
         dialog.setTitle("Registrar Socio"); dialog.setHeaderText("Datos del nuevo socio");
-
+ 
         ButtonType btnReg = new ButtonType("Registrar", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(btnReg, ButtonType.CANCEL);
-
+ 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(8); grid.setPadding(new Insets(15));
-
+ 
         TextField fNombre   = field("Nombre completo");
         TextField fRut      = field("xxxxxxxx-x");
         TextField fContacto = field("+569xxxxxxxx");
-
+ 
         grid.add(new Label("Nombre:"),   0, 0); grid.add(fNombre, 1, 0);
         grid.add(new Label("RUT:"),      0, 1); grid.add(fRut, 1, 1);
         grid.add(new Label("Contacto:"), 0, 2); grid.add(fContacto, 1, 2);
-
+ 
         Node regBtn = dialog.getDialogPane().lookupButton(btnReg);
         Runnable validar = () -> regBtn.setDisable(
             fNombre.getText().trim().isEmpty() || fRut.getText().trim().isEmpty() || fContacto.getText().trim().isEmpty());
         for (TextField f : new TextField[]{fNombre, fRut, fContacto})
             f.textProperty().addListener((o,a,b) -> validar.run());
         validar.run();
-
+ 
         dialog.getDialogPane().setContent(grid);
         dialog.setResultConverter(btn -> btn != btnReg ? null
             : new Socio(fNombre.getText().trim(), fRut.getText().trim(), fContacto.getText().trim()));
-
+ 
         dialog.showAndWait().ifPresent(socio -> {
-            if (inventario.getSocio(socio.getRut()) != null) {
+            if (inventario.getSocios().containsKey(socio.getRut())) {
                 alerta(Alert.AlertType.ERROR, "Error", "Ya existe un socio con RUT: " + socio.getRut(), null);
             } else {
                 inventario.setSocio(socio.getRut(), socio);

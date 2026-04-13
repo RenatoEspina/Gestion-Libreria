@@ -1,11 +1,8 @@
 package gestionLibreria.utilidades;
 
-import gestionLibreria.extensiones.LibroDigital;
-import gestionLibreria.extensiones.LibroPrestable;
-import gestionLibreria.inventario.Inventario;
-import gestionLibreria.inventario.Libro;
-import gestionLibreria.inventario.Seccion;
-import gestionLibreria.inventario.Socio;
+import gestionLibreria.excepciones.*;
+import gestionLibreria.extensiones.*;
+import gestionLibreria.inventario.*;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -339,24 +336,29 @@ public class GestorPersistencia {
      * prestados, buscándolos en el inventario ya cargado por su ID.
      *
      * @param inv inventario con los libros ya cargados
-     * @throws IOException si ocurre un error de lectura
+     * @throws LibroNoEncontradoException si ocurre un error de lectura en los libros
      */
     private void cargarSocios(Inventario inv) throws IOException {
         LectorCSV lector = new LectorCSV(rutaSocios);
         List<List<String>> datos = lector.readAll();
-
+ 
         for (int i = 1; i < datos.size(); i++) {
-            List<String> f    = datos.get(i);
-            String nombre     = unescapeCSV(f.get(0));
-            String rut        = unescapeCSV(f.get(1));
-            String contacto   = unescapeCSV(f.get(2));
-            String idsStr     = f.size() > 3 ? unescapeCSV(f.get(3)) : "";
-
+            List<String> f  = datos.get(i);
+            String nombre   = unescapeCSV(f.get(0));
+            String rut      = unescapeCSV(f.get(1));
+            String contacto = unescapeCSV(f.get(2));
+            String idsStr   = f.size() > 3 ? unescapeCSV(f.get(3)) : "";
+ 
             List<Libro> prestados = new ArrayList<>();
             if (!idsStr.isEmpty()) {
                 for (String idStr : idsStr.split(";")) {
-                    Libro l = inv.encontrarLibro(Integer.parseInt(idStr));
-                    if (l != null) prestados.add(l);
+                    try {
+                        Libro l = inv.encontrarLibro(Integer.parseInt(idStr));
+                        prestados.add(l);
+                    } catch (LibroNoEncontradoException e) {
+                        System.err.println("Advertencia al cargar socio '" + nombre
+                            + "': " + e.getMessage());
+                    }
                 }
             }
             inv.setSocio(rut, new Socio(nombre, rut, contacto, prestados));

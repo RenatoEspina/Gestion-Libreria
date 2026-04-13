@@ -3,7 +3,9 @@ package gestionLibreria.inventario;
 import java.time.LocalDate;
 import java.util.HashMap;
 
-import gestionLibreria.extensiones.LibroPrestable;
+import gestionLibreria.excepciones.*;
+import gestionLibreria.extensiones.*;
+
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -147,8 +149,12 @@ public class Inventario {
      * @param rut RUT del socio en formato {@code xxxxxxxx-x}
      * @return el socio encontrado, o {@code null} si no existe
      */
-    public Socio getSocio(String rut) {
-        return socios.get(rut);
+    public Socio getSocio(String rut) throws SocioNoEncontradoException {
+        Socio socio = socios.get(rut);
+        if (socio == null) {
+            throw new SocioNoEncontradoException("Socio no encontrado con RUT: " + rut);
+        }
+        return socio;
     }
 
     /**
@@ -164,10 +170,11 @@ public class Inventario {
     }
 
     /**
-     * Agrega o reemplaza un socio en el inventario.
+     * Busca y retorna un socio por su RUT.
      *
-     * @param rut   RUT del socio (clave)
-     * @param socio objeto {@link Socio} a asociar
+     * @param rut RUT del socio en formato {@code xxxxxxxx-x}
+     * @return el socio encontrado
+     * @throws SocioNoEncontradoException si no existe ningún socio con ese RUT
      */
     public void setSocio(String rut, Socio socio) {
         socios.put(rut, socio);
@@ -239,9 +246,7 @@ public class Inventario {
 
     /**
      * Retorna la lista de ejemplares cuyo título coincida exactamente con el dado.
-     * <p>
      * Busca en todas las secciones del inventario.
-     * </p>
      *
      * @param titulo título exacto del libro
      * @return lista observable de ejemplares encontrados; lista vacía si no existe ninguno
@@ -252,14 +257,15 @@ public class Inventario {
         ObservableList<Libro> resultado = seccion.encontrarLibrosPorTitulo(titulo);
         return resultado != null ? resultado : FXCollections.emptyObservableList();
     }
-
+ 
     /**
      * Busca un ejemplar específico por su ID interno, recorriendo todas las secciones.
      *
      * @param id identificador interno del libro
-     * @return el {@link Libro} con ese ID, o {@code null} si no existe
+     * @return el {@link Libro} con ese ID
+     * @throws LibroNoEncontradoException si no existe ningún libro con ese ID
      */
-    public Libro encontrarLibro(int id) {
+    public Libro encontrarLibro(int id) throws LibroNoEncontradoException {
         for (Seccion s : secciones.values()) {
             for (ObservableList<Libro> lista : s.getLibros().values()) {
                 for (Libro l : lista) {
@@ -267,7 +273,7 @@ public class Inventario {
                 }
             }
         }
-        return null;
+        throw new LibroNoEncontradoException("Libro no encontrado con ID: " + id);
     }
 
     // ---------------------------------------------------------------
