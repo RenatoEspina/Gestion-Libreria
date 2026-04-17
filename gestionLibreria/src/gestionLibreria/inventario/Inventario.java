@@ -168,7 +168,7 @@ public class Inventario {
     // ---------------------------------------------------------------
 
     /**
-     * Registra el préstamo de un libro a un socio.
+     * Registra el préstamo de un libro a un socio de manera indefinida.
      * <p>
      * Solo funciona con instancias de {@link LibroPrestable} disponibles.
      * Al prestarse, el libro se marca como no disponible y se registra la
@@ -190,6 +190,33 @@ public class Inventario {
         return true;
     }
 
+    /**
+     *Registra el préstamo de un libro estableciendo un plazo
+     * de días para su devolución.
+     * <p>
+     * Utiliza la lógica original de préstamo y, si tiene éxito, calcula y 
+     * asigna automáticamente la fecha límite en la que el socio debe devolverlo.
+     * </p>
+     *
+     * @param socio     Socio que recibe el préstamo.
+     * @param libro     Libro a prestar.
+     * @param diasPlazo Cantidad de días que el socio tiene para devolver el libro.
+     * @return true si el préstamo se realizó con éxito; false en caso contrario.
+     */
+    public boolean prestarLibro(Socio socio, Libro libro, int diasPlazo) {
+        // 1. Reutilizamos toda la lógica de validación del método original
+        boolean exito = prestarLibro(socio, libro);
+        
+        // 2. Si el préstamo fue exitoso, le agregamos la fecha límite
+        if (exito) {
+            LibroPrestable lp = (LibroPrestable) libro;
+            // Calculamos la fecha actual + los días de plazo
+            lp.setFechaDevolucion(LocalDate.now().plusDays(diasPlazo));
+        }
+        
+        return exito;
+    }
+    
     /**
      * Registra la devolución de un libro prestable por parte de su socio.
      * <p>

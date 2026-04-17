@@ -384,7 +384,13 @@ public class Terminal {
             return;
         }
 
-        boolean ok = inventario.prestarLibro(socio, libro);
+        int dias = Consola.leerEntero("Días de plazo (0 para indefinido): ");
+        boolean ok;
+        if (dias > 0) {
+            ok = inventario.prestarLibro(socio, libro, dias);
+        } else {
+            ok = inventario.prestarLibro(socio, libro);
+        }
         System.out.println(ok
             ? "Préstamo realizado con éxito!"
             : "El libro no está disponible para préstamo.");

@@ -433,15 +433,42 @@ public class Ventana {
             alerta(Alert.AlertType.WARNING, "No disponible", "Este libro ya está prestado.", null); return;
         }
 
-        TextInputDialog d = new TextInputDialog();
-        d.setTitle("Prestar Libro"); d.setHeaderText("Prestar: " + libro.getTitulo()); d.setContentText("RUT del socio:");
-        d.showAndWait().ifPresent(rut -> {
+        TextInputDialog dRut = new TextInputDialog();
+        dRut.setTitle("Prestar Libro"); 
+        dRut.setHeaderText("Prestar: " + libro.getTitulo()); 
+        dRut.setContentText("RUT del socio:");
+        
+        dRut.showAndWait().ifPresent(rut -> {
             try {
                 Socio socio = inventario.getSocio(rut.trim());
-                if (inventario.prestarLibro(socio, libro)) {
-                    tabla.refresh();
-                    alerta(Alert.AlertType.INFORMATION, "Éxito", "Libro prestado a " + socio.getNombre() + ".", null);
-                }
+                
+                TextInputDialog dDias = new TextInputDialog("0");
+                dDias.setTitle("Plazo del Préstamo");
+                dDias.setHeaderText("Socio: " + socio.getNombre());
+                dDias.setContentText("Días de plazo (0 para indefinido):");
+                
+                dDias.showAndWait().ifPresent(diasStr -> {
+                    try {
+                        int dias = Integer.parseInt(diasStr.trim());
+                        boolean exito;
+                        if (dias > 0) {
+                            exito = inventario.prestarLibro(socio, libro, dias);
+                        } else {
+                            exito = inventario.prestarLibro(socio, libro);
+                        }
+                        
+                        if (exito) {
+                            tabla.refresh();
+                            alerta(Alert.AlertType.INFORMATION, "Éxito", "Libro prestado a " + socio.getNombre() + ".", null);
+                        } else {
+                            alerta(Alert.AlertType.ERROR, "Error", "No se pudo realizar el préstamo.", null);
+                        }
+                        
+                    } catch (NumberFormatException ex) {
+                        alerta(Alert.AlertType.ERROR, "Error", "Debes ingresar un número válido de días.", null);
+                    }
+                });
+
             } catch (SocioNoEncontradoException e) {
                 alerta(Alert.AlertType.ERROR, "Error", e.getMessage(), null);
             }
