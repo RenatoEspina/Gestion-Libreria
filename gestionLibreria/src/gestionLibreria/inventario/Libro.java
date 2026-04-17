@@ -86,261 +86,61 @@ public class Libro {
     // Fecha de publicación
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna la fecha de publicación del libro.
-     *
-     * @return fecha de publicación
-     */
-    public LocalDate getFechaDePublicacion() {
-        return fechaDePublicacion;
-    }
-
-    /**
-     * Establece la fecha de publicación del libro.
-     *
-     * @param fechaDePublicacion nueva fecha de publicación
-     */
-    public void setFechaDePublicacion(LocalDate fechaDePublicacion) {
-        this.fechaDePublicacion = fechaDePublicacion;
-    }
+    public LocalDate getFechaDePublicacion() { return fechaDePublicacion; }
+    public void setFechaDePublicacion(LocalDate fechaDePublicacion) { this.fechaDePublicacion = fechaDePublicacion; }
 
     // ---------------------------------------------------------------
     // Título
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el título del libro.
-     *
-     * @return título del libro
-     */
-    public String getTitulo() {
-        return titulo.get();
-    }
-
-    /**
-     * Establece el título del libro.
-     *
-     * @param titulo nuevo título
-     */
-    public void setTitulo(String titulo) {
-        this.titulo.set(titulo);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX del título, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable del título
-     */
-    public SimpleStringProperty tituloProperty() {
-        return titulo;
-    }
+    public String getTitulo() { return titulo.get(); }
+    public void setTitulo(String titulo) { this.titulo.set(titulo); }
+    public SimpleStringProperty tituloProperty() { return titulo; }
 
     // ---------------------------------------------------------------
     // Edición
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna la edición del libro.
-     *
-     * @return edición del libro
-     */
-    public String getEdicion() {
-        return edicion.get();
-    }
-
-    /**
-     * Establece la edición del libro.
-     *
-     * @param edicion nueva edición
-     */
-    public void setEdicion(String edicion) {
-        this.edicion.set(edicion);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX de la edición, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable de la edición
-     */
-    public SimpleStringProperty edicionProperty() {
-        return edicion;
-    }
+    public String getEdicion() { return edicion.get(); }
+    public void setEdicion(String edicion) { this.edicion.set(edicion); }
+    public SimpleStringProperty edicionProperty() { return edicion; }
 
     // ---------------------------------------------------------------
     // Categoría
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna la categoría del libro.
-     *
-     * @return categoría del libro
-     */
-    public String getCategoria() {
-        return categoria.get();
-    }
-
-    /**
-     * Establece la categoría del libro.
-     *
-     * @param categoria nueva categoría
-     */
-    public void setCategoria(String categoria) {
-        this.categoria.set(categoria);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX de la categoría, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable de la categoría
-     */
-    public SimpleStringProperty categoriaProperty() {
-        return categoria;
-    }
+    public String getCategoria() { return categoria.get(); }
+    public void setCategoria(String categoria) { this.categoria.set(categoria); }
+    public SimpleStringProperty categoriaProperty() { return categoria; }
 
     // ---------------------------------------------------------------
     // Páginas
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el número de páginas del libro.
-     *
-     * @return número de páginas
-     */
-    public int getPaginas() {
-        return paginas.get();
-    }
-
-    /**
-     * Establece el número de páginas del libro.
-     *
-     * @param paginas nuevo número de páginas
-     */
-    public void setPaginas(int paginas) {
-        this.paginas.set(paginas);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX del número de páginas, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable de páginas
-     */
-    public SimpleIntegerProperty paginasProperty() {
-        return paginas;
-    }
+    public int getPaginas() { return paginas.get(); }
+    public void setPaginas(int paginas) { this.paginas.set(paginas); }
+    public SimpleIntegerProperty paginasProperty() { return paginas; }
 
     // ---------------------------------------------------------------
     // ID Interno
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el identificador interno del libro.
-     *
-     * @return ID interno
-     */
-    public int getIdInterno() {
-        return idInterno.get();
-    }
-
-    /**
-     * Establece el identificador interno del libro.
-     *
-     * @param idInterno nuevo ID interno
-     */
-    public void setIdInterno(int idInterno) {
-        this.idInterno.set(idInterno);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX del ID interno, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable del ID interno
-     */
-    public SimpleIntegerProperty idInternoProperty() {
-        return idInterno;
-    }
+    public int getIdInterno() { return idInterno.get(); }
+    public void setIdInterno(int idInterno) { this.idInterno.set(idInterno); }
+    public SimpleIntegerProperty idInternoProperty() { return idInterno; }
 
     // ---------------------------------------------------------------
     // Precio
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el precio del libro.
-     *
-     * @return precio del libro
-     */
-    public int getPrecio() {
-        return precio.get();
-    }
-
-    /**
-     * Establece el precio del libro.
-     *
-     * @param precio nuevo precio
-     */
-    public void setprecio(int precio) {
-        this.precio.set(precio);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX del precio, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable del precio
-     */
-    public SimpleIntegerProperty precioProperty() {
-        return precio;
-    }
+    public int getPrecio() { return precio.get(); }
+    public void setprecio(int precio) { this.precio.set(precio); }
+    public SimpleIntegerProperty precioProperty() { return precio; }
 
     // ---------------------------------------------------------------
     // Autores
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna la lista observable de autores del libro.
-     *
-     * @return lista observable de nombres de autores
-     */
-    public ObservableList<String> getAutores() {
-        return autores;
-    }
-
-    /**
-     * Reemplaza la lista de autores por la lista proporcionada.
-     *
-     * @param autores nueva lista de nombres de autores
-     */
-    public void setAutores(List<String> autores) {
-        this.autores.setAll(autores);
-    }
-
-    // ---------------------------------------------------------------
-    // Utilidades
-    // ---------------------------------------------------------------
-
-    /**
-     * Imprime en consola la información bibliográfica del libro.
-     * <p>
-     * Las subclases deben invocar {@code super.imprimirInformacion()} y luego
-     * añadir sus propios campos.
-     * </p>
-     */
-    public void imprimirInformacion() {
-        System.out.println("- Título: " + titulo.get());
-        System.out.println("- Fecha de publicación: " + getFechaDePublicacion());
-
-        if (getAutores() != null && !getAutores().isEmpty()) {
-            System.out.print("- Autores: ");
-            for (int i = 0; i < getAutores().size(); i++) {
-                System.out.print(getAutores().get(i));
-                if (i < getAutores().size() - 1) System.out.print(", ");
-            }
-            System.out.println();
-        } else {
-            System.out.println("- Autores: No especificados");
-        }
-
-        System.out.println("- Categoría: " + categoria.get());
-        System.out.println("- Páginas: "   + paginas.get());
-        System.out.println("- Precio: "    + precio.get());
-        System.out.println("- ID: "        + idInterno.get());
-    }
+    public ObservableList<String> getAutores() { return autores; }
+    public void setAutores(List<String> autores) { this.autores.setAll(autores); }
 }

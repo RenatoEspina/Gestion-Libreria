@@ -58,76 +58,15 @@ public class LibroDigital extends Libro {
     // Memoria (tamaño en MB)
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el tamaño del archivo digital en megabytes.
-     *
-     * @return tamaño en MB
-     */
-    public int getMemoria() {
-        return memoria.get();
-    }
-
-    /**
-     * Establece el tamaño del archivo digital en megabytes.
-     *
-     * @param memoria nuevo tamaño en MB
-     */
-    public void setMemoria(int memoria) {
-        this.memoria.set(memoria);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX de la memoria, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable del tamaño en MB
-     */
-    public SimpleIntegerProperty memoriaProperty() {
-        return memoria;
-    }
+    public int getMemoria() { return memoria.get(); }
+    public void setMemoria(int memoria) { this.memoria.set(memoria); }
+    public SimpleIntegerProperty memoriaProperty() { return memoria; }
 
     // ---------------------------------------------------------------
     // Formato
     // ---------------------------------------------------------------
 
-    /**
-     * Retorna el formato del archivo digital (p. ej. "PDF", "EPUB").
-     *
-     * @return formato del archivo
-     */
-    public String getFormato() {
-        return formato.get();
-    }
-
-    /**
-     * Establece el formato del archivo digital.
-     *
-     * @param formato nuevo formato (p. ej. "PDF", "EPUB")
-     */
-    public void setFormato(String formato) {
-        this.formato.set(formato);
-    }
-
-    /**
-     * Retorna la propiedad JavaFX del formato, útil para enlace de datos en la UI.
-     *
-     * @return propiedad observable del formato
-     */
-    public SimpleStringProperty formatoProperty() {
-        return formato;
-    }
-
-    // ---------------------------------------------------------------
-    // Utilidades
-    // ---------------------------------------------------------------
-
-    /**
-     * Imprime en consola la información del libro, incluyendo sus atributos digitales.
-     * Invoca primero {@code super.imprimirInformacion()} para los campos heredados.
-     */
-    @Override
-    public void imprimirInformacion() {
-        super.imprimirInformacion();
-        System.out.println("Formato: "      + formato.get());
-        System.out.println("Memoria (MB): " + memoria.get());
-    }
+    public String getFormato() { return formato.get(); }
+    public void setFormato(String formato) { this.formato.set(formato); }
+    public SimpleStringProperty formatoProperty() { return formato; }
 }

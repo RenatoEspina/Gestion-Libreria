@@ -1,6 +1,6 @@
 seccion,id,titulo,autores,edicion,categoria,paginas,fecha_pub,precio,tipo,memoria,formato_digital,disponibilidad,retraso,multa,f_prestamo,f_devolucion
 Ciencia y Tecnología,201,Breve historia del tiempo,Stephen Hawking,10ma,Ciencia,256,1988-04-01,9500,DIGITAL,15,PDF,,,,,
-Ciencia y Tecnología,202,Clean Code,Robert C. Martin,1ra,Software,464,2008-08-01,25000,PRESTABLE,,,false,0,1000,2023-10-20,2023-11-05
+Ciencia y Tecnología,202,Clean Code,Robert C. Martin,1ra,Software,464,2008-08-01,25000,PRESTABLE,,,true,0,1000,,
 Ficción Contemporánea,102,1984,George Orwell,Debolsillo,Distopía,328,1949-06-08,12000,BASE,,,,,,,,
 Ficción Contemporánea,101,La Casa de los Espíritus,Isabel Allende,1ra,Novela,450,1982-01-01,15000,BASE,,,,,,,,
 Autoayuda,501,Hábitos Atómicos,James Clear,1ra,Desarrollo,320,2018-10-16,18000,DIGITAL,5,EPUB,,,,,
