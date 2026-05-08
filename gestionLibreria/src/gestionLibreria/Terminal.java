@@ -16,8 +16,9 @@ import javafx.collections.ObservableList;
  * Modo terminal de la aplicación de gestión de librería.
  * <p>
  * Presenta un menú interactivo en consola que permite gestionar el inventario
- * de libros, registrar socios, realizar préstamos y devoluciones, buscar libros
- * y generar reportes en formato Excel con filtros.
+ * de libros, gestionar secciones, registrar y eliminar socios, realizar
+ * préstamos y devoluciones, buscar libros y generar reportes en formato Excel
+ * con filtros.
  * </p>
  *
  * <p>Toda la lógica de negocio se delega en {@link Inventario}; esta clase
@@ -35,41 +36,51 @@ public class Terminal {
 
     /**
      * Inicia el modo terminal, mostrando el menú principal en bucle hasta que
-     * el usuario elija la opción de guardar y salir (9).
+     * el usuario elija la opción de guardar y salir (11).
+     *
+     * @param inventario inventario con los datos cargados al inicio
+     * @param gestor     gestor de persistencia usado para guardar al salir
      */
     public static void modoTerminal(Inventario inventario, GestorPersistencia gestor) {
         System.out.println("Bienvenido al modo terminal");
         Consola.enterParaContinuar();
 
         int decision = 0;
-        while (decision != 9) {
+        while (decision != 10) {
             Consola.limpiarPantalla();
             System.out.println("╔══════════════════════════════╗");
             System.out.println("║   Gestión de Librería        ║");
             System.out.println("╠══════════════════════════════╣");
-            System.out.println("║ 1. Ver Inventario            ║");
-            System.out.println("║ 2. Ver Socios                ║");
-            System.out.println("║ 3. Registrar Socio           ║");
-            System.out.println("║ 4. Vender Libro              ║");
-            System.out.println("║ 5. Prestar Libro a Socio     ║");
-            System.out.println("║ 6. Devolver Libro            ║");
-            System.out.println("║ 7. Buscar Libro por Nombre   ║");
-            System.out.println("║ 8. Filtros y Reporte Excel   ║");
-            System.out.println("║ 9. Guardar y Salir           ║");
+            System.out.println("║  1. Ver Inventario           ║");
+            System.out.println("║  2. Gestionar Secciones      ║");
+            System.out.println("║  3. Ver Socios               ║");
+            System.out.println("║  4. Registrar Socio          ║");
+            System.out.println("║  5. Eliminar Socio           ║");
+            System.out.println("║  6. Vender Libro             ║");
+            System.out.println("║  7. Prestar Libro a Socio    ║");
+            System.out.println("║  8. Devolver Libro           ║");
+            System.out.println("║  9. Buscar Libro por Nombre  ║");
+            System.out.println("║ 10. Filtros y Reporte Excel  ║");
+            System.out.println("║ 11. Guardar y Salir          ║");
             System.out.println("╚══════════════════════════════╝");
             decision = Consola.leerEntero("Opción: ");
             Consola.limpiarPantalla();
 
             switch (decision) {
-                case 1: menuInventario(inventario);        break;
-                case 2: menuSocios(inventario);            break;
-                case 3: registrarSocio(inventario);        break;
-                case 4: venderLibro(inventario);           break;
-                case 5: prestarLibro(inventario);          break;
-                case 6: devolverLibro(inventario);         break;
-                case 7: buscarLibro(inventario);           break;
-                case 8: filtrosYReporte(inventario);       break;
-                case 9: guardarYSalir(gestor, inventario); break;
+                case 1:  menuInventario(inventario);        break;
+                case 2:  menuSecciones(inventario);         break;
+                case 3:  menuSocios(inventario);            break;
+                case 4:  registrarSocio(inventario);        break;
+                case 5:  eliminarSocio(inventario);         break;
+                case 6:  venderLibro(inventario);           break;
+                case 7:  prestarLibro(inventario);          break;
+                case 8:  devolverLibro(inventario);         break;
+                case 9:  buscarLibro(inventario);           break;
+                case 10: filtrosYReporte(inventario);       break;
+                case 11:
+                    guardarYSalir(gestor, inventario);
+                    decision = 10;   // fuerza salida del bucle
+                    break;
                 default:
                     System.out.println("Opción inválida.");
                     Consola.enterParaContinuar();
@@ -85,6 +96,8 @@ public class Terminal {
     /**
      * Muestra en consola la información bibliográfica de un libro.
      * Incluye campos extendidos según el tipo concreto del ejemplar.
+     *
+     * @param libro libro cuya información se va a imprimir
      */
     private static void mostrarLibro(Libro libro) {
         System.out.println("- Título: " + libro.getTitulo());
@@ -122,6 +135,8 @@ public class Terminal {
 
     /**
      * Muestra en consola la información de un socio y sus libros en préstamo.
+     *
+     * @param socio socio cuya información se va a imprimir
      */
     private static void mostrarSocio(Socio socio) {
         System.out.println("- Nombre: "  + socio.getNombre());
@@ -253,7 +268,152 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 2 — Ver socios
+    // Opción 2 — Gestionar Secciones
+    // ---------------------------------------------------------------
+
+    /**
+     * Presenta un submenú para administrar las secciones del inventario.
+     * <p>
+     * Las operaciones disponibles son:
+     * <ul>
+     *   <li><b>1 - Listar</b>: muestra todas las secciones con la cantidad
+     *       de títulos que contiene cada una.</li>
+     *   <li><b>2 - Agregar</b>: solicita un nombre y crea una nueva sección
+     *       vacía, rechazando nombres duplicados.</li>
+     *   <li><b>3 - Eliminar</b>: solicita el nombre de la sección a borrar y
+     *       pide confirmación antes de eliminarla junto con todos sus libros.</li>
+     * </ul>
+     * </p>
+     *
+     * @param inventario inventario sobre el que se operará
+     */
+    private static void menuSecciones(Inventario inventario) {
+        System.out.println("=== Gestionar Secciones ===");
+        System.out.println("1. Listar secciones");
+        System.out.println("2. Agregar sección");
+        System.out.println("3. Eliminar sección");
+        int opcion = Consola.leerEntero("Opción: ");
+        Consola.limpiarPantalla();
+
+        switch (opcion) {
+            case 1:
+                listarSecciones(inventario);
+                break;
+            case 2:
+                agregarSeccion(inventario);
+                break;
+            case 3:
+                eliminarSeccion(inventario);
+                break;
+            default:
+                System.out.println("Opción inválida.");
+                Consola.enterParaContinuar();
+                break;
+        }
+    }
+
+    /**
+     * Lista por consola todas las secciones del inventario junto con el número
+     * de títulos distintos que contiene cada una.
+     * <p>
+     * Si no existe ninguna sección informa al usuario y regresa al menú.
+     * </p>
+     *
+     * @param inventario inventario del que se leerán las secciones
+     */
+    private static void listarSecciones(Inventario inventario) {
+        ObservableList<Seccion> secciones = inventario.getSeccionesAsObservableList();
+
+        if (secciones.isEmpty()) {
+            System.out.println("No hay secciones registradas.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        System.out.println("--- Secciones ---");
+        for (Seccion s : secciones) {
+            System.out.println("  - " + s.getNombre()
+                + "  (" + s.GetLlaves().size() + " título(s))");
+        }
+        Consola.enterParaContinuar();
+    }
+
+    /**
+     * Solicita al usuario el nombre de una nueva sección y la registra en el
+     * inventario.
+     * <p>
+     * El nombre no puede estar vacío ni coincidir con una sección ya existente
+     * (comparación exacta). Si alguna de estas condiciones no se cumple, se
+     * informa del error sin registrar nada.
+     * </p>
+     *
+     * @param inventario inventario donde se dará de alta la sección
+     */
+    private static void agregarSeccion(Inventario inventario) {
+        String nombre = Consola.leerString("Nombre de la nueva sección: ").trim();
+
+        if (inventario.getSecciones().containsKey(nombre)) {
+            System.out.println("Error: Ya existe una sección con ese nombre.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        inventario.setSeccion(nombre, new Seccion(nombre));
+        System.out.println("Sección \"" + nombre + "\" creada con éxito.");
+        Consola.enterParaContinuar();
+    }
+
+    /**
+     * Solicita al usuario el nombre de la sección a eliminar y pide confirmación
+     * antes de borrarla definitivamente junto con todos sus libros.
+     * <p>
+     * Si la sección no existe se notifica al usuario. La confirmación se realiza
+     * escribiendo {@code "si"}; cualquier otra entrada cancela la operación.
+     * </p>
+     *
+     * @param inventario inventario del que se eliminará la sección
+     */
+    private static void eliminarSeccion(Inventario inventario) {
+        ObservableList<Seccion> secciones = inventario.getSeccionesAsObservableList();
+        if (secciones.isEmpty()) {
+            System.out.println("No hay secciones registradas.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        System.out.println("--- Secciones disponibles ---");
+        for (Seccion s : secciones) {
+            System.out.println("  - " + s.getNombre()
+                + "  (" + s.GetLlaves().size() + " título(s))");
+        }
+
+        String nombre = Consola.leerString("\nNombre de la sección a eliminar (o 'cancelar'): ").trim();
+        if (nombre.equalsIgnoreCase("cancelar")) return;
+
+        if (!inventario.getSecciones().containsKey(nombre)) {
+            System.out.println("Error: La sección \"" + nombre + "\" no existe.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        Seccion seccion = inventario.getSeccion(nombre);
+        int totalLibros = seccion.GetLlaves().size();
+
+        System.out.println("⚠ Se eliminará la sección \"" + nombre + "\" con "
+            + totalLibros + " título(s). Esta acción no se puede deshacer.");
+        String confirmacion = Consola.leerString("¿Confirmar? (si/no): ");
+
+        if (confirmacion.equalsIgnoreCase("si")) {
+            inventario.getSecciones().remove(nombre);
+            System.out.println("Sección eliminada con éxito.");
+        } else {
+            System.out.println("Operación cancelada.");
+        }
+        Consola.enterParaContinuar();
+    }
+
+    // ---------------------------------------------------------------
+    // Opción 3 — Ver socios
     // ---------------------------------------------------------------
 
     private static void menuSocios(Inventario inventario) {
@@ -286,7 +446,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 3 — Registrar socio
+    // Opción 4 — Registrar socio
     // ---------------------------------------------------------------
 
     private static void registrarSocio(Inventario inventario) {
@@ -306,7 +466,69 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 4 — Vender libro
+    // Opción 5 — Eliminar socio
+    // ---------------------------------------------------------------
+
+    /**
+     * Solicita el RUT de un socio y lo elimina del sistema previa confirmación.
+     * <p>
+     * No se permite eliminar a un socio que tenga libros pendientes de
+     * devolución; en ese caso se informa el error y no se realiza ninguna
+     * modificación.
+     * </p>
+     *
+     * @param inventario inventario del que se eliminará el socio
+     */
+    private static void eliminarSocio(Inventario inventario) {
+        ObservableList<Socio> socios = inventario.getSociosAsObservableList();
+
+        if (socios.isEmpty()) {
+            System.out.println("No hay socios registrados.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        System.out.println("\n--- Socios Registrados ---");
+        for (Socio s : socios) {
+            System.out.println("  " + s.getNombre() + " | RUT: " + s.getRut()
+                + " | Préstamos activos: " + s.getLibrosPrestados().size());
+        }
+
+        String rut = Consola.leerString("\nRUT del socio a eliminar (o 'cancelar'): ");
+        if (rut.equalsIgnoreCase("cancelar")) return;
+
+        Socio socio;
+        try {
+            socio = inventario.getSocio(rut);
+        } catch (SocioNoEncontradoException e) {
+            System.out.println(e.getMessage());
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        if (!socio.getLibrosPrestados().isEmpty()) {
+            System.out.println("Error: El socio tiene "
+                + socio.getLibrosPrestados().size()
+                + " libro(s) pendiente(s) de devolución. "
+                + "Deben devolverse antes de eliminar el socio.");
+            Consola.enterParaContinuar();
+            return;
+        }
+
+        String confirmacion = Consola.leerString(
+            "¿Eliminar a \"" + socio.getNombre() + "\" (RUT: " + rut + ")? (si/no): ");
+
+        if (confirmacion.equalsIgnoreCase("si")) {
+            inventario.eliminarSocio(rut);
+            System.out.println("Socio eliminado con éxito.");
+        } else {
+            System.out.println("Operación cancelada.");
+        }
+        Consola.enterParaContinuar();
+    }
+
+    // ---------------------------------------------------------------
+    // Opción 6 — Vender libro
     // ---------------------------------------------------------------
 
     private static void venderLibro(Inventario inventario) {
@@ -338,7 +560,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 5 — Prestar libro
+    // Opción 7 — Prestar libro
     // ---------------------------------------------------------------
 
     private static void prestarLibro(Inventario inventario) {
@@ -398,7 +620,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 6 — Devolver libro
+    // Opción 8 — Devolver libro
     // ---------------------------------------------------------------
 
     private static void devolverLibro(Inventario inventario) {
@@ -445,7 +667,6 @@ public class Terminal {
             return;
         }
 
-        // Delegar toda la lógica de negocio al modelo
         int multa = inventario.devolverLibro(socio, (LibroPrestable) libro);
         if (multa > 0) {
             System.out.println("⚠ Libro devuelto con retraso. Multa aplicada: $" + multa);
@@ -455,7 +676,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 7 — Buscar libro
+    // Opción 9 — Buscar libro
     // ---------------------------------------------------------------
 
     private static void buscarLibro(Inventario inventario) {
@@ -474,7 +695,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 8 — Filtros y Reporte Excel
+    // Opción 10 — Filtros y Reporte Excel
     // ---------------------------------------------------------------
 
     private static void filtrosYReporte(Inventario inventario) {
@@ -559,7 +780,7 @@ public class Terminal {
     }
 
     // ---------------------------------------------------------------
-    // Opción 9 — Guardar y salir
+    // Opción 11 — Guardar y salir
     // ---------------------------------------------------------------
 
     private static void guardarYSalir(GestorPersistencia gestor, Inventario inventario) {
